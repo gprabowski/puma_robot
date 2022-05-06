@@ -19,12 +19,12 @@ static void framebuffer_size_callback(GLFWwindow *window, int width,
 }
 
 void glfw_window_destroyer(GLFWwindow *w) {
-  TINY_CAD_INFO("Destroying GLFW window");
+  GK2_PUMA_INFO("Destroying GLFW window");
   glfwDestroyWindow(w);
 }
 
 static void glfw_error_callback(int error, const char *description) {
-  TINY_CAD_ERROR("{0}: {1}", error, description);
+  GK2_PUMA_ERROR("{0}: {1}", error, description);
 }
 
 void teardown() { glfwTerminate(); }
@@ -32,7 +32,7 @@ void teardown() { glfwTerminate(); }
 void glfw_die(const char *message) {
   const char *err;
   glfwGetError(&err);
-  TINY_CAD_CRITICAL("{0} : {1} ", message, err);
+  GK2_PUMA_CRITICAL("{0} : {1} ", message, err);
   exit(-1);
 }
 
@@ -47,9 +47,9 @@ static void APIENTRY openglCallbackFunction(GLenum source, GLenum type,
   (void)severity;
   (void)length;
   (void)userParam;
-  TINY_CAD_ERROR("{0}", message);
+  GK2_PUMA_ERROR("{0}", message);
   if (severity == GL_DEBUG_SEVERITY_HIGH) {
-    TINY_CAD_CRITICAL("Aborting...");
+    GK2_PUMA_CRITICAL("Aborting...");
     abort();
   }
 }
@@ -80,7 +80,7 @@ void glfw_setup() {
     glfw_die("Couldn't initialize GLFW");
   }
 
-  TINY_CAD_INFO("GLFW Successfully initialized");
+  GK2_PUMA_INFO("GLFW Successfully initialized");
 }
 
 std::shared_ptr<GLFWwindow> glfw_get_window(const int w, const int h,
@@ -104,17 +104,17 @@ void glad_setup() {
   if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
     glfw_die("[ERROR] Couldn't initialize GLAD");
   } else {
-    TINY_CAD_INFO("GLAD Successfully initialized");
+    GK2_PUMA_INFO("GLAD Successfully initialized");
   }
 }
 
 void ogl_print_info() {
-  TINY_CAD_INFO("OpenGL loaded");
-  TINY_CAD_INFO("Vendor: {0}",
+  GK2_PUMA_INFO("OpenGL loaded");
+  GK2_PUMA_INFO("Vendor: {0}",
                 reinterpret_cast<const char *>(glGetString(GL_VENDOR)));
-  TINY_CAD_INFO("Renderer: {0}",
+  GK2_PUMA_INFO("Renderer: {0}",
                 reinterpret_cast<const char *>(glGetString(GL_RENDERER)));
-  TINY_CAD_INFO("Version: {0}",
+  GK2_PUMA_INFO("Version: {0}",
                 reinterpret_cast<const char *>(glGetString(GL_VERSION)));
 }
 

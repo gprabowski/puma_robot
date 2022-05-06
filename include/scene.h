@@ -32,6 +32,7 @@ struct scene {
   robot r;
   environment e;
   mirror m;
+  void draw();
   static scene get_initialized_scene() {
     scene s;
     s.r.load_parts_from_files({"assets/mesh1.txt", "assets/mesh2.txt",

@@ -42,7 +42,7 @@ void framebuffer::invalidate() {
                             0);
   if (glCheckNamedFramebufferStatus(of_fb, GL_FRAMEBUFFER) !=
       GL_FRAMEBUFFER_COMPLETE) {
-    TINY_CAD_CRITICAL("Framebuffer creation failed!");
+    GK2_PUMA_CRITICAL("Framebuffer creation failed!");
   }
   GLenum draw_bufs[] = {GL_COLOR_ATTACHMENT0};
   glNamedFramebufferDrawBuffers(of_fb, 1, draw_bufs);

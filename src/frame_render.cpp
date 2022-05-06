@@ -65,6 +65,7 @@ void render_viewport(puma::scene &s) {
   fb.bind();
   glViewport(0, 0, frame_state::content_area.x, frame_state::content_area.y);
   clean_render();
+  s.draw();
   fb.unbind();
 
   GLuint t = fb.get_color_att();

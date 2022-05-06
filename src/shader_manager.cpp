@@ -25,7 +25,7 @@ std::string shader_manager::read_shader_file(
   ifs.open(shader_file);
   ifs.ignore(std::numeric_limits<std::streamsize>::max());
   auto size = ifs.gcount();
-  TINY_CAD_INFO("[SHADER] Read {0} bytes from {1}", size, shader_file);
+  GK2_PUMA_INFO("[SHADER] Read {0} bytes from {1}", size, shader_file);
 
   ifs.clear();
   ifs.seekg(0, std::ios_base::beg);
@@ -51,7 +51,7 @@ GLuint compile_shader_from_source(const std::string &source, GLuint type) {
     GLsizei log_length = 0;
     GLchar message[1024];
     glGetShaderInfoLog(shader, 1024, &log_length, message);
-    TINY_CAD_ERROR("[SHADER {0}] {1}", type, message);
+    GK2_PUMA_ERROR("[SHADER {0}] {1}", type, message);
   }
 
   return shader;
@@ -109,7 +109,7 @@ GLuint shader_manager::add(shader_t st, const std::string &name) {
       GLsizei log_length = 0;
       GLchar message[1024];
       glGetProgramInfoLog(program, 1024, &log_length, message);
-      TINY_CAD_ERROR("[PROG LINK] {0}", message);
+      GK2_PUMA_ERROR("[PROG LINK] {0}", message);
     }
 
     glDeleteShader(vertex_shader);
