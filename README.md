@@ -1,25 +1,16 @@
-# tinyCAD
+# PUMA
 
 ## todo
 
-### compulsory
-- [ ] add a color log
-- [ ] picking by color in framebuffer
-- [ ] add rectangle with lines on bottom at level 0
-- [ ] stereo mode
-
-- [ ] change maps to sparse sets
-- [ ] move camera and rotations to quaternions
-- [ ] changing scene / screen coords of cursor
-- [ ] consider changing BufaferData to allocation and map + memcpy
-- [ ] box select
-
-- [ ] choice of color for each eye
-- [ ] focus distance
-- [ ] eye separation
+### obowiązkowe
+- [ ]  Animacja ramion robota przy pomocy rozwiązywania zadania kinematyki odwrotnej
+- [x]  Swobodna kamera o 5-ciu stopniach swobody
+- [ ]  environment
+- [ ]  Oświetlenie
+- [ ]  Bryły cienia
+- [ ]  System cząstek reprezentujący iskry
+- [ ]  Odbicie sceny w kawałku blachy
 
 ### gui
-- [ ] modality (can be closed and opened via menu)
-- [ ] top menu
-- [ ] fonts
-- [ ] styling
+- [ ] gui sceny
+- [ ] modyfikacje wyglądu
