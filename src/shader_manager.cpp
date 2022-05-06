@@ -11,9 +11,10 @@ shader_manager &shader_manager::get_manager() {
 }
 
 shader_manager::shader_manager() {
-    glCreateBuffers(1, &common_ubo);
-    glNamedBufferData(common_ubo, 2 * 16 *sizeof(float), NULL,
-               GL_DYNAMIC_DRAW);
+  glCreateBuffers(1, &common_ubo);
+  // two mat4 and two vec4
+  glNamedBufferData(common_ubo, (2 * 16 + 3 * 4) * sizeof(float), NULL,
+                    GL_DYNAMIC_DRAW);
 }
 
 shader_manager::~shader_manager() {

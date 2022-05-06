@@ -15,14 +15,14 @@ struct gl_object {
   GLuint program;
   GLuint vao, vbo, ebo;
 
-  glm::vec4 color{0.2f, 0.2f, 0.2f, 1.0f};
+  glm::vec4 color{1.0f, 1.0f, 1.0f, 1.0f};
 
   void reset_api_elements(puma::mesh &m);
 
   gl_object() {
-      glCreateBuffers(1, &vbo);
-      glCreateBuffers(1, &ebo);
-      glCreateVertexArrays(1, &vao);
+    glCreateBuffers(1, &vbo);
+    glCreateBuffers(1, &ebo);
+    glCreateVertexArrays(1, &vao);
   }
   ~gl_object() {
     if (glIsBuffer(vbo)) {

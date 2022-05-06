@@ -13,6 +13,10 @@ struct frame_state {
 
   static glm::mat4 view;
   static glm::mat4 proj;
+
+  static glm::vec4 light_pos;
+  static glm::vec4 light_color;
+
   static int window_w;
   static int window_h;
 

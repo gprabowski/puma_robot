@@ -214,6 +214,7 @@ void render_robot_part_gui(puma::robot_part &rp, const int idx) {
   ImGui::SameLine(100.f);
   if (ImGui::TreeNode(desc.c_str())) {
     ImGui::Checkbox("Visible", &rp.visible);
+    ImGui::ColorEdit4("Color", glm::value_ptr(rp.g.color));
     render_transformation_gui(rp.t);
     ImGui::TreePop();
   }
@@ -227,8 +228,18 @@ void render_robot_gui(puma::robot &r) {
 
 void render_scene_gui(puma::scene &s) {
   ImGui::Begin("Scene Settings");
+
+  ImGui::Text("%s", "Light");
+  std::string desc = ("Show more##light");
+  ImGui::SameLine(160.f);
+  if (ImGui::TreeNode(desc.c_str())) {
+    ImGui::SliderFloat4("Position", glm::value_ptr(frame_state::light_pos),
+                        -10.f, 10.f);
+    ImGui::ColorEdit4("Color", glm::value_ptr(frame_state::light_color));
+  }
+
   ImGui::Text("%s", "Robot");
-  std::string desc = ("Show more##robot");
+  desc = ("Show more##robot");
   ImGui::SameLine(160.f);
   if (ImGui::TreeNode(desc.c_str())) {
     render_robot_gui(s.r);

@@ -6,6 +6,9 @@
 glm::mat4 frame_state::proj;
 glm::mat4 frame_state::view;
 
+glm::vec4 frame_state::light_pos;
+glm::vec4 frame_state::light_color;
+
 int frame_state::window_w;
 int frame_state::window_h;
 
