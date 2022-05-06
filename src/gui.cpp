@@ -165,7 +165,6 @@ void start_frame() {
   ImGui_ImplOpenGL3_NewFrame();
   ImGui_ImplGlfw_NewFrame();
   ImGui::NewFrame();
-  ImGuizmo::BeginFrame();
 
   ImGui::DockSpaceOverViewport(ImGui::GetMainViewport(), dockspace_flags);
 
@@ -201,6 +200,8 @@ void render_transformation_gui(transformation &t) {
                           100.f)) {
   }
 }
+
+void render_scene_gui(puma::scene &s) {}
 
 void end_frame() {
   ImGui::Render();

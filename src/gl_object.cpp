@@ -35,7 +35,3 @@ void gl_object::reset_api_elements(puma::mesh &m) {
   glVertexArrayAttribBinding(vao, 0, 0);
   glVertexArrayAttribBinding(vao, 1, 0);
 }
-
-void gl_object::load(const std::filesystem::path::value_type *shader_file) {}
-
-void gl_object::draw() {}

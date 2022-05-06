@@ -19,7 +19,6 @@ struct gl_object {
 
   glm::vec4 color{0.2f, 0.2f, 0.2f, 1.0f};
 
-  void load(const std::filesystem::path::value_type *shader_file);
   void reset_api_elements(puma::mesh &m);
 
   ~gl_object() {

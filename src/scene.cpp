@@ -1,8 +1,13 @@
 #include <scene.h>
+#include <utils.h>
 
-void puma::robot_part::draw() {
-  glUseProgram(g.program);
-  glVertexAttrib4f(1, g.color.r, g.color.g, g.color.b, g.color.a);
-  glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-  glDrawElements(GL_TRIANGLES, 3 * g.m.indices.size(), GL_UNSIGNED_INT, NULL);
+void puma::robot::load_parts_from_files(
+    const std::array<const std::filesystem::path::value_type *, 6> &filenames) {
+
+}
+
+void puma::robot::draw() {
+  for (auto &p : parts) {
+    utils::render_triangles(p);
+  }
 }

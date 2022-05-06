@@ -1,5 +1,7 @@
 #pragma once
 
+#include <array>
+
 #include <gl_object.h>
 #include <transformation.h>
 
@@ -12,10 +14,17 @@ struct robot_part {
 
   // don't judge me
   bool visible{true};
+};
+
+struct robot {
+  std::array<robot_part, 6> parts;
+
+  void load_parts_from_files(
+      const std::array<const std::filesystem::path::value_type *, 6>
+          &filenames);
   void draw();
 };
 
-struct robot {};
 struct environment {};
 struct mirror {};
 
@@ -25,6 +34,9 @@ struct scene {
   mirror m;
   static scene get_initialized_scene() {
     scene s;
+    s.r.load_parts_from_files({"assets/mesh1.txt", "assets/mesh2.txt",
+                               "assets/mesh3.txt", "assets/mesh4.txt",
+                               "assets/mesh5.txt", "assets/mesh6.txt"});
     return s;
   }
 };

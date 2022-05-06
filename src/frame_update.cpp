@@ -8,7 +8,6 @@
 #include <frame_state.h>
 #include <frame_update.h>
 #include <input_state.h>
-#include <registry.h>
 #include <shader_manager.h>
 #include <utils.h>
 
@@ -55,6 +54,6 @@ void refresh_ubos() {
   glBindBuffer(GL_UNIFORM_BUFFER, sm.common_ubo);
 }
 
-void per_frame_update() {}
+void per_frame_update(puma::scene &s) {}
 
 } // namespace update

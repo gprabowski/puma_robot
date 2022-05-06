@@ -9,11 +9,9 @@
 #include <glm/glm.hpp>
 #include <glm/gtx/quaternion.hpp>
 
-#include <dummy.h>
 #include <frame_state.h>
 #include <gl_object.h>
 #include <log.h>
-#include <torus.h>
 #include <utils.h>
 
 namespace utils {
@@ -30,135 +28,6 @@ void set_model_uniform(transformation &t) {
 
   glUniformMatrix4fv(glGetUniformLocation(program, "model"), 1, GL_FALSE,
                      glm::value_ptr(model));
-}
-
-void render_visible_entities() {
-  auto &reg = ecs::registry::get_registry();
-
-  for (const auto &[idx, _] : reg.get_map<tag_visible>()) {
-    auto &t = reg.get_component<transformation>(idx);
-    auto &gl = reg.get_component<gl_object>(idx);
-    glUseProgram(gl.program);
-    utils::set_model_uniform(t);
-    glVertexAttrib4f(1, gl.color.r, gl.color.g, gl.color.b, gl.color.a);
-    utils::render_gl(gl);
-  }
-}
-
-void update_center_of_weight() {
-  auto &reg = ecs::registry::get_registry();
-  auto cen = reg.get_map<tag_center_of_weight>().begin()->first;
-  auto &t = reg.get_component<transformation>(cen);
-  t.translation = glm::vec3(0.0f);
-  auto counter = 0;
-  for (auto &[idx, _] : reg.get_map<selected>()) {
-    if (!reg.has_component<tag_parent>(idx)) {
-      t.translation += reg.get_component<transformation>(idx).translation;
-      ++counter;
-    }
-  }
-  t.translation *= (1.f / counter);
-  if (counter > 0 && !reg.has_component<tag_visible>(cen)) {
-    reg.add_component<tag_visible>(cen, {});
-  }
-}
-
-void update_cursor() {
-  auto &reg = ecs::registry::get_registry();
-  auto cur = reg.get_map<cursor_params>().begin()->first;
-  auto &t = reg.get_component<transformation>(cur);
-  const auto val =
-      std::abs((frame_state::view * glm::vec4(t.translation, 1)).z);
-  t.scale = glm::vec3(val, val, val);
-}
-
-void render_app() {
-  static ImVec4 clear_color = ImVec4(0.0f, 0.0f, 0.0f, 1.00f);
-  glClearColor(clear_color.x * clear_color.w, clear_color.y * clear_color.w,
-               clear_color.z * clear_color.w, clear_color.w);
-  glClearDepth(1.0f);
-  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-  update_center_of_weight();
-  update_cursor();
-  render_visible_entities();
-}
-
-void update_changed_relationships() {
-  auto &reg = ecs::registry::get_registry();
-
-  for (const auto id : frame_state::changed) {
-    if (reg.has_component<relationship>(id)) {
-      auto &rel = reg.get_component<relationship>(id);
-      // virtual
-      if (reg.has_component<tag_virtual>(id)) {
-        auto vparent = rel.parents[0];
-        if (reg.has_component<bspline>(vparent)) {
-          // 1. find index of virtual point
-          auto &prel = reg.get_component<relationship>(vparent);
-          const auto vidx =
-              std::distance(begin(prel.virtual_children),
-                            std::find(begin(prel.virtual_children),
-                                      end(prel.virtual_children), id));
-          const auto Aidx = prel.children[vidx / 3];
-          const auto Bidx = prel.children[vidx / 3 + 1];
-          const auto Cidx = prel.children[vidx / 3 + 2];
-
-          auto &a = reg.get_component<transformation>(id);
-          auto &A = reg.get_component<transformation>(Aidx);
-          auto &B = reg.get_component<transformation>(Bidx);
-          auto &C = reg.get_component<transformation>(Cidx);
-          auto S = (A.translation + C.translation) / 2.0f;
-
-          switch (vidx % 3) {
-          case 0: {
-            B.translation = S + 3.f / 2.f * (a.translation - S);
-          } break;
-          case 1: {
-            B.translation =
-                C.translation + 3.f / 2.f * (a.translation - C.translation);
-          } break;
-          case 2: {
-            B.translation =
-                C.translation + 3.f * (a.translation - C.translation);
-          } break;
-          }
-        }
-      }
-      // regular
-      if (rel.parents.size()) {
-        for (auto p : rel.parents) {
-          frame_state::changed_parents.insert(p);
-        }
-      }
-      if (rel.children.size()) {
-        frame_state::changed_parents.insert(id);
-      }
-    }
-  }
-
-  for (const auto id : frame_state::deleted) {
-    if (reg.has_component<relationship>(id)) {
-      auto &rel = reg.get_component<relationship>(id);
-      if (rel.parents.size()) {
-        for (auto p : rel.parents) {
-          frame_state::changed_parents.insert(p);
-        }
-      }
-      reg.remove_component<relationship>(id);
-    }
-  }
-
-  for (const auto p : frame_state::changed_parents) {
-    regenerate(p);
-  }
-}
-
-void delete_entities() {
-  auto &reg = ecs::registry::get_registry();
-
-  for (const auto idx : frame_state::deleted)
-    reg.delete_entity(idx);
 }
 
 } // namespace utils

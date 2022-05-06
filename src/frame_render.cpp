@@ -11,13 +11,18 @@
 namespace hnd = handlers;
 
 namespace render {
-void begin_frame(uint64_t &b) {
-  static glm::vec4 clear_color = {0.0f, 0.0f, 0.0f, 1.00f};
-  b = glfwGetTimerValue();
+
+void clean_render() {
+  static ImVec4 clear_color = ImVec4(0.0f, 0.0f, 0.0f, 1.00f);
   glClearColor(clear_color.x * clear_color.w, clear_color.y * clear_color.w,
                clear_color.z * clear_color.w, clear_color.w);
   glClearDepth(1.0f);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+}
+
+void begin_frame(uint64_t &b) {
+  clean_render();
+  b = glfwGetTimerValue();
 
   gui::start_frame();
   ImGui::Begin("Viewport");
@@ -42,27 +47,28 @@ void render_window_gui(puma::scene &s) {
   gui::render_scene_gui(s);
 }
 
-void render_viewport() {
+void render_viewport(puma::scene &s) {
   // display
   static auto &fb = framebuffer::get();
   static auto &desc = fb.get_desc();
   ImGui::Begin("Viewport");
   update::setup_globals(ImGui::GetContentRegionAvail());
-  const auto s = ImGui::GetContentRegionAvail();
+  const auto region = ImGui::GetContentRegionAvail();
 
-  if (desc.width != s.x || desc.height != s.y) {
-    desc.width = s.x;
-    desc.height = s.y;
+  if (desc.width != region.x || desc.height != region.y) {
+    desc.width = region.x;
+    desc.height = region.y;
     fb.invalidate();
   }
 
   // render offscreen
   fb.bind();
   glViewport(0, 0, frame_state::content_area.x, frame_state::content_area.y);
+  clean_render();
   fb.unbind();
 
   GLuint t = fb.get_color_att();
-  ImGui::Image((void *)(uint64_t)t, s, {0, 1}, {1, 0});
+  ImGui::Image((void *)(uint64_t)t, region, {0, 1}, {1, 0});
 
   ImGui::End();
 }
