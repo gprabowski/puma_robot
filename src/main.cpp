@@ -5,17 +5,18 @@
 #include <frame_update.h>
 #include <init.h>
 #include <log.h>
+#include <scene.h>
 
-void main_loop() {
+void main_loop(puma::scene &s) {
   static uint64_t begin_time = glfwGetTimerValue();
 
   auto w = glfwGetCurrentContext();
 
   while (!glfwWindowShouldClose(w)) {
     render::begin_frame(begin_time);
-    render::render_viewport();
-    render::render_window_gui();
-    update::per_frame_update();
+    render::render_viewport(s);
+    render::render_window_gui(s);
+    update::per_frame_update(s);
     render::end_frame(w, begin_time);
   }
 }
@@ -23,8 +24,9 @@ void main_loop() {
 int main() {
   log::init();
   auto glfw_win = init::init_all("tinyCAD");
+  auto s = puma::scene::get_initialized_scene();
 
-  main_loop();
+  main_loop(s);
 
   init::cleanup();
 }

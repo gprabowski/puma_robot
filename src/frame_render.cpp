@@ -5,10 +5,10 @@
 #include <framebuffer.h>
 #include <gui.h>
 #include <input_handlers.h>
-#include <systems.h>
+#include <scene.h>
+#include <utils.h>
 
 namespace hnd = handlers;
-namespace sys = systems;
 
 namespace render {
 void begin_frame(uint64_t &b) {
@@ -18,9 +18,6 @@ void begin_frame(uint64_t &b) {
                clear_color.z * clear_color.w, clear_color.w);
   glClearDepth(1.0f);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-  frame_state::changed.clear();
-  frame_state::deleted.clear();
-  frame_state::changed_parents.clear();
 
   gui::start_frame();
   ImGui::Begin("Viewport");
@@ -39,13 +36,12 @@ void end_frame(GLFWwindow *w, uint64_t &begin_time) {
   glfwPollEvents();
 }
 
-void render_window_gui() {
+void render_window_gui(puma::scene &s) {
   gui::render_performance_window();
   gui::render_general_settings();
-  gui::render_figure_select_gui();
-  gui::render_selected_edit_gui();
-  gui::render_cursor_gui();
+  gui::render_scene_gui(s);
 }
+
 void render_viewport() {
   // display
   static auto &fb = framebuffer::get();
@@ -63,15 +59,10 @@ void render_viewport() {
   // render offscreen
   fb.bind();
   glViewport(0, 0, frame_state::content_area.x, frame_state::content_area.y);
-  sys::render_app();
   fb.unbind();
 
   GLuint t = fb.get_color_att();
   ImGui::Image((void *)(uint64_t)t, s, {0, 1}, {1, 0});
-
-  glm::mat4 gizmo_trans(1.0f);
-  sys::get_gizmo_transform(gizmo_trans);
-  sys::apply_group_transform(gizmo_trans);
 
   ImGui::End();
 }

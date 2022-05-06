@@ -10,6 +10,8 @@
 #include <input_state.h>
 #include <memory>
 
+#include <scene.h>
+
 namespace gui {
 
 void setup_gui(std::shared_ptr<GLFWwindow> &w);
@@ -19,9 +21,6 @@ void cleanup_gui();
 
 void render_performance_window();
 void render_general_settings();
-void render_figure_select_gui();
-void render_selected_edit_gui();
-
-void render_cursor_gui();
+void render_scene_gui(puma::scene &s);
 
 } // namespace gui

@@ -14,7 +14,3 @@ ImVec2 frame_state::content_pos;
 
 uint64_t frame_state::freq = glfwGetTimerFrequency();
 double frame_state::last_cpu_frame;
-
-std::vector<ecs::EntityType> frame_state::changed;
-std::set<ecs::EntityType> frame_state::changed_parents;
-std::vector<ecs::EntityType> frame_state::deleted;

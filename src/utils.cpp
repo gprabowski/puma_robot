@@ -13,23 +13,12 @@
 #include <frame_state.h>
 #include <gl_object.h>
 #include <log.h>
-#include <systems.h>
 #include <torus.h>
+#include <utils.h>
 
-namespace systems {
+namespace utils {
 
-void regenerate(ecs::EntityType idx) {
-  static ecs::registry &reg = ecs::registry::get_registry();
-  if (reg.has_component<bspline>(idx)) {
-    regenerate_bspline(idx);
-  } else if (reg.has_component<bezierc>(idx)) {
-    regenerate_bezier(idx);
-  } else if (reg.has_component<icurve>(idx)) {
-    regenerate_icurve(idx);
-  }
-}
-
-void set_model_uniform(const transformation &t) {
+void set_model_uniform(transformation &t) {
   GLint program;
   glGetIntegerv(GL_CURRENT_PROGRAM, &program);
 
@@ -43,33 +32,6 @@ void set_model_uniform(const transformation &t) {
                      glm::value_ptr(model));
 }
 
-void render_gl(const gl_object &g) {
-  using gldm = gl_object::draw_mode;
-
-  glBindVertexArray(g.vao);
-  glPointSize(4.0f);
-
-  if (g.dmode == gldm::points) {
-    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-    glDrawArrays(GL_POINTS, 0, g.points.size());
-  } else if (g.dmode == gldm::lines) {
-    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-    glDrawElements(GL_LINES, g.indices.size(), GL_UNSIGNED_INT, NULL);
-  } else if (g.dmode == gldm::line_strip) {
-    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-    glDrawElements(GL_LINE_STRIP, g.indices.size(), GL_UNSIGNED_INT, NULL);
-  } else if (g.dmode == gldm::patches) {
-    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-    glPatchParameteri(GL_PATCH_VERTICES, 4);
-    glDrawElements(GL_PATCHES, g.indices.size(), GL_UNSIGNED_INT, NULL);
-  } else if (g.dmode == gldm::triangles) {
-    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-    glDrawElements(GL_TRIANGLES, g.indices.size(), GL_UNSIGNED_INT, NULL);
-  }
-  glBindVertexArray(0);
-  glPointSize(1.0f);
-}
-
 void render_visible_entities() {
   auto &reg = ecs::registry::get_registry();
 
@@ -77,9 +39,9 @@ void render_visible_entities() {
     auto &t = reg.get_component<transformation>(idx);
     auto &gl = reg.get_component<gl_object>(idx);
     glUseProgram(gl.program);
-    systems::set_model_uniform(t);
+    utils::set_model_uniform(t);
     glVertexAttrib4f(1, gl.color.r, gl.color.g, gl.color.b, gl.color.a);
-    systems::render_gl(gl);
+    utils::render_gl(gl);
   }
 }
 
@@ -199,4 +161,4 @@ void delete_entities() {
     reg.delete_entity(idx);
 }
 
-} // namespace systems
+} // namespace utils

@@ -8,8 +8,6 @@
 
 #include <imgui.h>
 
-#include <ImGuizmo.h>
-
 struct input_state {
   enum mouse_button : int { left = 0, right = 1, middle = 2, other = 3 };
 

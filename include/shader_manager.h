@@ -6,14 +6,7 @@
 
 #include <glad/glad.h>
 
-enum class shader_t {
-  POINT_SHADER,
-  CURSOR_SHADER,
-  TORUS_SHADER,
-  BEZIER_CURVE_SHADER,
-  BSPLINE_CURVE_SHADER,
-  INTERPOLATION_CURVE_SHADER,
-};
+enum class shader_t { DEFAULT_SHADER };
 
 struct shader {
   GLuint idx{0u};

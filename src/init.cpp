@@ -4,7 +4,6 @@
 #include <cstdlib>
 
 #include <callbacks.h>
-#include <constructors.h>
 #include <frame_state.h>
 #include <gui.h>
 #include <init.h>
@@ -171,14 +170,8 @@ std::shared_ptr<GLFWwindow> init_all(const char *caption) {
 
   auto &sm = shader_manager::get_manager();
   // read in all shaders
-  sm.add(shader_t::TORUS_SHADER, "resources/general");
-  sm.add(shader_t::POINT_SHADER, "resources/general");
-  sm.add(shader_t::BEZIER_CURVE_SHADER, "resources/bezier");
-  sm.add(shader_t::BSPLINE_CURVE_SHADER, "resources/bspline");
-  sm.add(shader_t::CURSOR_SHADER, "resources/general");
-  sm.add(shader_t::INTERPOLATION_CURVE_SHADER, "resources/bezier");
+  sm.add(shader_t::DEFAULT_SHADER, "resources/general");
 
-  constructors::setup_initial_geometry();
   gui::setup_gui(w);
 
   frame_state::freq = glfwGetTimerFrequency();

@@ -10,7 +10,7 @@
 #include <input_state.h>
 #include <registry.h>
 #include <shader_manager.h>
-#include <systems.h>
+#include <utils.h>
 
 namespace update {
 void setup_globals(const ImVec2 &s) {
@@ -55,9 +55,6 @@ void refresh_ubos() {
   glBindBuffer(GL_UNIFORM_BUFFER, sm.common_ubo);
 }
 
-void per_frame_update() {
-  systems::update_changed_relationships();
-  systems::delete_entities();
-}
+void per_frame_update() {}
 
 } // namespace update

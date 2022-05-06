@@ -3,7 +3,7 @@
 #include <constructors.h>
 #include <frame_state.h>
 #include <shader_manager.h>
-#include <systems.h>
+#include <utils.h>
 
 namespace handlers {
 
@@ -47,7 +47,7 @@ inline void add_current_shape_at_cursor() {
       reg.add_component<relationship>(new_shape, {{s}, {}});
       auto &srel = reg.get_component<relationship>(s);
       srel.children.push_back(new_shape);
-      systems::regenerate(s);
+      utils::regenerate(s);
     }
   }
 }
