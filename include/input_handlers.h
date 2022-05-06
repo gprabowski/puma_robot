@@ -5,7 +5,6 @@
 
 #include <input_state.h>
 #include <memory>
-#include <registry.h>
 
 namespace handlers {
 void process_input();

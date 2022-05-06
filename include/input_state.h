@@ -12,14 +12,6 @@
 
 struct input_state {
   enum mouse_button : int { left = 0, right = 1, middle = 2, other = 3 };
-  enum wasd_mode : int { camera = 0, cursor = 1 } imode{cursor};
-  enum gizmo_mode : int {
-    translation = 0,
-    rotation = 1,
-    scaling = 2,
-    universal = 3
-  };
-  ImGuizmo::OPERATION gizmo_op{ImGuizmo::OPERATION::UNIVERSAL};
 
   float yaw{-90.0f};
   float pitch{0.0f};
