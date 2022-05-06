@@ -30,7 +30,7 @@ struct shader_manager {
   std::map<shader_t, shader> programs;
 
 private:
-  shader_manager() = default;
+  shader_manager();
 
   std::string
   read_shader_file(const std::filesystem::path::value_type *shader_file);

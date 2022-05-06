@@ -3,15 +3,25 @@
 #include <optional>
 #include <shader_manager.h>
 
+#include <glm/glm.hpp>
+
 shader_manager &shader_manager::get_manager() {
   static shader_manager sm;
   return sm;
+}
+
+shader_manager::shader_manager() {
+    glCreateBuffers(1, &common_ubo);
+    glNamedBufferData(common_ubo, 2 * 16 *sizeof(float), NULL,
+               GL_DYNAMIC_DRAW);
 }
 
 shader_manager::~shader_manager() {
   for (auto &[str, s] : cache) {
     glDeleteProgram(s.idx);
   }
+
+  glDeleteBuffers(1, &common_ubo);
 }
 
 std::string shader_manager::read_shader_file(
@@ -124,6 +134,7 @@ GLuint shader_manager::add(shader_t st, const std::string &name) {
     }
 
     shader ret_s{program, 0u};
+
     bind_common_ubo(ret_s);
 
     cache[name] = ret_s;

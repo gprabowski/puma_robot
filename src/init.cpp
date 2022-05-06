@@ -118,13 +118,6 @@ void ogl_print_info() {
                 reinterpret_cast<const char *>(glGetString(GL_VERSION)));
 }
 
-void common_ubo_setup(std::shared_ptr<GLFWwindow> w) {
-  auto &sm = shader_manager::get_manager();
-  glCreateBuffers(1, &sm.common_ubo);
-  glNamedBufferData(sm.common_ubo, 2 * 16 * sizeof(float), NULL,
-                    GL_DYNAMIC_DRAW);
-}
-
 void ogl_setup(std::shared_ptr<GLFWwindow> w) {
 #ifndef RELEASE_MODE
   glEnable(GL_DEBUG_OUTPUT);
@@ -163,7 +156,6 @@ std::shared_ptr<GLFWwindow> init_all(const char *caption) {
   // OPENGL STATE
   ogl_print_info();
   ogl_setup(w);
-  common_ubo_setup(w);
 
   clb::set_keyboard_callback(w);
   clb::set_mouse_callback(w);
