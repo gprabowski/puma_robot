@@ -13,7 +13,7 @@ void main_loop(puma::scene &s) {
   auto w = glfwGetCurrentContext();
 
   while (!glfwWindowShouldClose(w)) {
-    render::begin_frame(begin_time);
+    render::begin_frame(begin_time, s);
     render::render_viewport(s);
     render::render_window_gui(s);
     update::per_frame_update(s);

@@ -5,7 +5,8 @@
 
 #include <input_state.h>
 #include <memory>
+#include <scene.h>
 
 namespace handlers {
-void process_input();
+void process_input(puma::scene &s);
 }

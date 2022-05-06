@@ -60,6 +60,6 @@ void refresh_ubos() {
   glBindBuffer(GL_UNIFORM_BUFFER, sm.common_ubo);
 }
 
-void per_frame_update(puma::scene &s) {}
+void per_frame_update(puma::scene &s) { s.r.recalculate_transformations(); }
 
 } // namespace update

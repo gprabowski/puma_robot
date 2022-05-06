@@ -168,7 +168,7 @@ std::shared_ptr<GLFWwindow> init_all(const char *caption) {
 
   frame_state::freq = glfwGetTimerFrequency();
 
-  frame_state::light_pos = {-0.8, 4.0, 0.0, 0.0};
+  frame_state::light_pos = {1.0, 4.0, 2.0, 0.0};
   frame_state::light_color = {1.0, 1.0, 1.0, 1.0};
 
   return w;

@@ -83,8 +83,48 @@ void puma::robot::load_parts_from_files(
       ss.clear();
     }
 
+    axes = {glm::vec3{0.0f, -1.0f, 0.0f},
+            {0.0f, 0.0f, -1.0f},
+            {0.0f, 0.0f, -1.0f},
+            {-1.0f, 0.0f, 0.0f},
+            {0.0f, 0.0f, -1.0f}};
+
+    positions = {glm::vec3{0.0f, 0.0f, 0.0f},
+                 {0.0f, 0.27f, 0.0f},
+                 {-0.91f, 0.27f, 0.0f},
+                 {0.0f, 0.27f, -0.26f},
+                 {-1.72f, 0.27f, 0.0f}};
+
+    for (std::size_t i = 0; i < angles.size(); ++i) {
+      angles[i] = 0.0f;
+      axes[i] = glm::normalize(axes[i]);
+    }
     p.g.program = sm.programs[shader_t::DEFAULT_SHADER].idx;
     p.g.reset_api_elements(p.m);
+  }
+}
+
+void decompose(const glm::mat4 &m, glm::vec3 &trans, glm::vec3 &scale,
+               glm::vec3 &rot) {
+  trans = glm::vec3(m[3]);
+  scale = {glm::length(glm::vec3(m[0])), glm::length(glm::vec3(m[1])),
+           glm::length(glm::vec3(m[2]))};
+
+  glm::mat4 m_rot(m[0] / scale.x, m[1] / scale.y, m[2] / scale.z,
+                  glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
+  rot = glm::degrees(glm::eulerAngles(glm::quat_cast(m_rot)));
+}
+
+void puma::robot::recalculate_transformations() {
+  glm::mat4 current_transform = glm::mat4(1.0f);
+  glm::vec3 dummy;
+  for (int i = 1; i < 6; ++i) {
+    auto t1 = glm::translate(glm::mat4(1.0f), -1.f * positions[i - 1]);
+    auto r1 = glm::rotate(glm::mat4(1.0f), angles[i - 1], axes[i - 1]);
+    auto t2 = glm::translate(glm::mat4(1.0f), positions[i - 1]);
+    current_transform = current_transform * t2 * r1 * t1;
+    decompose(current_transform, parts[i].t.translation, dummy,
+              parts[i].t.rotation);
   }
 }
 

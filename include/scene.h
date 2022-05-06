@@ -18,10 +18,14 @@ struct robot_part {
 
 struct robot {
   std::array<robot_part, 6> parts;
+  std::array<float, 5> angles;
+  std::array<glm::vec3, 5> axes;
+  std::array<glm::vec3, 5> positions;
 
   void load_parts_from_files(
       const std::array<const std::filesystem::path::value_type *, 6>
           &filenames);
+  void recalculate_transformations();
   void draw();
 };
 

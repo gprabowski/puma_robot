@@ -6,7 +6,7 @@
 
 namespace handlers {
 
-void handle_keyboard() {
+void handle_keyboard(puma::scene &s) {
   static float delta_time = 0.0f;
   static float last_frame = 0.0f;
 
@@ -30,6 +30,37 @@ void handle_keyboard() {
   if (state.pressed[GLFW_KEY_D]) {
     state.cam_pos +=
         glm::normalize(glm::cross(state.cam_front, state.cam_up)) * cameraSpeed;
+  }
+  if (state.pressed[GLFW_KEY_Y]) {
+    s.r.angles[0] += 0.5;
+  }
+  if (state.pressed[GLFW_KEY_U]) {
+    s.r.angles[1] += 0.5;
+  }
+  if (state.pressed[GLFW_KEY_I]) {
+    s.r.angles[2] += 0.5;
+  }
+  if (state.pressed[GLFW_KEY_O]) {
+    s.r.angles[3] += 0.5;
+  }
+  if (state.pressed[GLFW_KEY_P]) {
+    s.r.angles[4] += 0.5;
+  }
+
+  if (state.pressed[GLFW_KEY_G]) {
+    s.r.angles[0] -= 0.5;
+  }
+  if (state.pressed[GLFW_KEY_H]) {
+    s.r.angles[1] -= 0.5;
+  }
+  if (state.pressed[GLFW_KEY_J]) {
+    s.r.angles[2] -= 0.5;
+  }
+  if (state.pressed[GLFW_KEY_K]) {
+    s.r.angles[3] -= 0.5;
+  }
+  if (state.pressed[GLFW_KEY_L]) {
+    s.r.angles[4] -= 0.5;
   }
 }
 
@@ -74,14 +105,14 @@ void handle_mouse() {
   }
 }
 
-void process_input() {
+void process_input(puma::scene &s) {
   using fs = frame_state;
   if (!ImGui::IsMouseHoveringRect(fs::content_pos,
                                   {fs::content_pos.x + fs::content_area.x,
                                    fs::content_pos.y + fs::content_area.y})) {
     return;
   }
-  handle_keyboard();
+  handle_keyboard(s);
   handle_mouse();
 }
 

@@ -236,6 +236,7 @@ void render_scene_gui(puma::scene &s) {
     ImGui::SliderFloat4("Position", glm::value_ptr(frame_state::light_pos),
                         -10.f, 10.f);
     ImGui::ColorEdit4("Color", glm::value_ptr(frame_state::light_color));
+    ImGui::TreePop();
   }
 
   ImGui::Text("%s", "Robot");

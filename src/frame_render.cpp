@@ -5,7 +5,6 @@
 #include <framebuffer.h>
 #include <gui.h>
 #include <input_handlers.h>
-#include <scene.h>
 #include <utils.h>
 
 namespace hnd = handlers;
@@ -20,13 +19,13 @@ void clean_render() {
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
 
-void begin_frame(uint64_t &b) {
+void begin_frame(uint64_t &b, puma::scene &s) {
   clean_render();
   b = glfwGetTimerValue();
 
   gui::start_frame();
   ImGui::Begin("Viewport");
-  hnd::process_input();
+  hnd::process_input(s);
   ImGui::End();
   update::refresh_ubos();
 }

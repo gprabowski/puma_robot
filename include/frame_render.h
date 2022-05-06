@@ -6,7 +6,7 @@
 #include <scene.h>
 
 namespace render {
-void begin_frame(uint64_t &b);
+void begin_frame(uint64_t &b, puma::scene &s);
 void end_frame(GLFWwindow *w, uint64_t &begin_time);
 void render_window_gui(puma::scene &s);
 void render_viewport(puma::scene &s);
