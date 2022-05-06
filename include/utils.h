@@ -16,6 +16,9 @@ void set_model_uniform(transformation &t);
 void refresh_common_uniforms(GLuint program);
 
 template <typename O> void render_triangles(O &o) {
+  if (!o.visible) {
+    return;
+  }
   transformation &t = o.t;
   gl_object &g = o.g;
   puma::mesh &m = o.m;

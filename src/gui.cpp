@@ -199,9 +199,59 @@ void render_transformation_gui(transformation &t) {
   if (ImGui::SliderFloat3("position", glm::value_ptr(t.translation), -100.f,
                           100.f)) {
   }
+
+  if (ImGui::SliderFloat3("rotation", glm::value_ptr(t.rotation), -180.f,
+                          180.f)) {
+  }
+
+  if (ImGui::SliderFloat3("scale", glm::value_ptr(t.scale), -100.f, 100.f)) {
+  }
 }
 
-void render_scene_gui(puma::scene &s) {}
+void render_robot_part_gui(puma::robot_part &rp, const int idx) {
+  ImGui::Text("%s%d", "Part #", idx);
+  std::string desc = ("Show more##") + std::to_string(idx);
+  ImGui::SameLine(100.f);
+  if (ImGui::TreeNode(desc.c_str())) {
+    ImGui::Checkbox("Visible", &rp.visible);
+    render_transformation_gui(rp.t);
+    ImGui::TreePop();
+  }
+}
+
+void render_robot_gui(puma::robot &r) {
+  for (auto i = 0; i < 6; ++i) {
+    render_robot_part_gui(r.parts[i], i);
+  }
+}
+
+void render_scene_gui(puma::scene &s) {
+  ImGui::Begin("Scene Settings");
+  ImGui::Text("%s", "Robot");
+  std::string desc = ("Show more##robot");
+  ImGui::SameLine(160.f);
+  if (ImGui::TreeNode(desc.c_str())) {
+    render_robot_gui(s.r);
+    ImGui::TreePop();
+  }
+
+  ImGui::Text("%s", "Environment");
+  desc = ("Show more##environment");
+  ImGui::SameLine(160.f);
+  if (ImGui::TreeNode(desc.c_str())) {
+    ImGui::TreePop();
+  }
+
+  ImGui::Text("%s", "Mirror");
+  desc = ("Show more##mirror");
+  ImGui::SameLine(160.f);
+  if (ImGui::TreeNode(desc.c_str())) {
+    ImGui::TreePop();
+  }
+  ImGui::End();
+}
+
+void render_effects_gui() {}
 
 void end_frame() {
   ImGui::Render();

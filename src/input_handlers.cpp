@@ -16,7 +16,7 @@ void handle_keyboard() {
   delta_time = currentFrame - last_frame;
   last_frame = currentFrame;
 
-  const float cameraSpeed = 30.f * delta_time; // adjust accordingly
+  const float cameraSpeed = 5.f * delta_time; // adjust accordingly
   if (state.pressed[GLFW_KEY_W]) {
     state.cam_pos += cameraSpeed * state.cam_front;
   }
