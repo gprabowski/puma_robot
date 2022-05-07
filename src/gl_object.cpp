@@ -8,9 +8,8 @@ void gl_object::reset_api_elements(puma::mesh &m) {
                     m.vertices.data(), GL_STATIC_DRAW);
 
   // allocation or reallocation
-  glNamedBufferData(ebo, sizeof(puma::triangle_t) * m.indices.size(),
-                    m.indices.data(), GL_STATIC_DRAW);
-
+  glNamedBufferData(ebo, sizeof(m.adjacent_tris[0]) * m.adjacent_tris.size(),
+                    m.adjacent_tris.data(), GL_STATIC_DRAW);
 
   glVertexArrayVertexBuffer(vao, 0, vbo, 0, sizeof(puma::vertex_t));
   glVertexArrayElementBuffer(vao, ebo);

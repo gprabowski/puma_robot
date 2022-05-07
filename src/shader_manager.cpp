@@ -35,7 +35,7 @@ std::string shader_manager::read_shader_file(const std::filesystem::path shader_
   ifs.open(shader_file);
   ifs.ignore(std::numeric_limits<std::streamsize>::max());
   auto size = ifs.gcount();
-  GK2_PUMA_INFO("[SHADER] Read {0} bytes from {1}", size, shader_file);
+  //GK2_PUMA_INFO("[SHADER] Read {0} bytes from {1}", size, shader_file);
 
   ifs.clear();
   ifs.seekg(0, std::ios_base::beg);
@@ -78,6 +78,7 @@ GLuint shader_manager::add(shader_t st, const std::string &name) {
     // optional stages
     std::optional<GLuint> tesc_shader;
     std::optional<GLuint> tese_shader;
+    std::optional<GLuint> geom_shader;
 
     std::string vert_source = read_shader_file((name + ".vert").c_str());
     std::string frag_source = read_shader_file((name + ".frag").c_str());
@@ -92,6 +93,12 @@ GLuint shader_manager::add(shader_t st, const std::string &name) {
       std::string tese_source = read_shader_file((name + ".tese").c_str());
       tese_shader =
           compile_shader_from_source(tese_source, GL_TESS_EVALUATION_SHADER);
+    }
+
+    if (fs::exists(name + ".geom")) {
+      std::string geom_source = read_shader_file((name + ".geom").c_str());
+      geom_shader =
+        compile_shader_from_source(geom_source, GL_GEOMETRY_SHADER);
     }
 
     GLuint vertex_shader =
@@ -109,6 +116,9 @@ GLuint shader_manager::add(shader_t st, const std::string &name) {
     }
     if (tese_shader.has_value()) {
       glAttachShader(program, tese_shader.value());
+    }
+    if (geom_shader.has_value()) {
+      glAttachShader(program, geom_shader.value());
     }
 
     glLinkProgram(program);
@@ -131,6 +141,10 @@ GLuint shader_manager::add(shader_t st, const std::string &name) {
 
     if (tese_shader.has_value()) {
       glDeleteShader(tese_shader.value());
+    }
+
+    if (geom_shader.has_value()) {
+      glDeleteShader(geom_shader.value());
     }
 
     shader ret_s{program, 0u};

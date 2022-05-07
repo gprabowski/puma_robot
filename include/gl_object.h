@@ -12,7 +12,7 @@
 #include <mesh.h>
 
 struct gl_object {
-  GLuint program;
+  GLuint program, shadow_program;
   GLuint vao, vbo, ebo;
 
   glm::vec4 color{1.0f, 1.0f, 1.0f, 1.0f};
@@ -41,6 +41,11 @@ struct gl_object {
       glDeleteVertexArrays(1, &vao);
     }
     if (glIsProgram(program)) {
+      // TODO add shader management
+      // glDeleteProgram(program);
+    }
+
+    if (glIsProgram(shadow_program)) {
       // TODO add shader management
       // glDeleteProgram(program);
     }

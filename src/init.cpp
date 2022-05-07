@@ -110,12 +110,9 @@ void glad_setup() {
 
 void ogl_print_info() {
   GK2_PUMA_INFO("OpenGL loaded");
-  GK2_PUMA_INFO("Vendor: {0}",
-                reinterpret_cast<const char *>(glGetString(GL_VENDOR)));
-  GK2_PUMA_INFO("Renderer: {0}",
-                reinterpret_cast<const char *>(glGetString(GL_RENDERER)));
-  GK2_PUMA_INFO("Version: {0}",
-                reinterpret_cast<const char *>(glGetString(GL_VERSION)));
+  //GK2_PUMA_INFO("Vendor: {0}", reinterpret_cast<const char *>(glGetString(GL_VENDOR)));
+  //GK2_PUMA_INFO("Renderer: {0}", reinterpret_cast<const char *>(glGetString(GL_RENDERER)));
+  //GK2_PUMA_INFO("Version: {0}", reinterpret_cast<const char *>(glGetString(GL_VERSION)));
 }
 
 void ogl_setup(std::shared_ptr<GLFWwindow> w) {
@@ -163,6 +160,7 @@ std::shared_ptr<GLFWwindow> init_all(const char *caption) {
   auto &sm = shader_manager::get_manager();
   // read in all shaders
   sm.add(shader_t::DEFAULT_SHADER, "resources/general");
+  sm.add(shader_t::SILHOUETTE_SHADER, "resources/silhouette");
 
   gui::setup_gui(w);
 

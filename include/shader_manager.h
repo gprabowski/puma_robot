@@ -6,7 +6,7 @@
 
 #include <glad/glad.h>
 
-enum class shader_t { DEFAULT_SHADER };
+enum class shader_t { DEFAULT_SHADER, SILHOUETTE_SHADER };
 
 struct shader {
   GLuint idx{0u};

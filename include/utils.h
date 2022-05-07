@@ -28,7 +28,26 @@ template <typename O> void render_triangles(O &o) {
   utils::set_model_uniform(t);
   glVertexAttrib4f(2, g.color.r, g.color.g, g.color.b, g.color.a);
   glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-  glDrawElements(GL_TRIANGLES, 3 * m.indices.size(), GL_UNSIGNED_INT, NULL);
+  glDrawElements(GL_TRIANGLES_ADJACENCY, m.adjacent_tris.size(), GL_UNSIGNED_INT, NULL);
+}
+
+template <typename O> void render_silhouettes(O& o) {
+  if (!o.visible) {
+    return;
+  }
+
+  auto& sm = shader_manager::get_manager();
+
+  transformation& t = o.t;
+  gl_object& g = o.g;
+  puma::mesh& m = o.m;
+
+  glBindVertexArray(g.vao);
+  glUseProgram(g.shadow_program);
+  utils::set_model_uniform(t);
+  glVertexAttrib4f(2, g.color.r, g.color.g, g.color.b, g.color.a);
+  glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+  glDrawElements(GL_TRIANGLES_ADJACENCY, m.adjacent_tris.size(), GL_UNSIGNED_INT, NULL);
 }
 
 } // namespace utils

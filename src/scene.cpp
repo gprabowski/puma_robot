@@ -20,7 +20,7 @@ read_mesh_file(const std::filesystem::path mesh_file) {
   ifs.open(mesh_file);
   ifs.ignore(std::numeric_limits<std::streamsize>::max());
   auto size = ifs.gcount();
-  GK2_PUMA_INFO("[MESH] Read {0} bytes from {1}", size, mesh_file);
+  //GK2_PUMA_INFO("[MESH] Read {0} bytes from {1}", size, mesh_file);
 
   ifs.clear();
   ifs.seekg(0, std::ios_base::beg);
@@ -66,10 +66,11 @@ void puma::robot::load_parts_from_files(
       float x, y, z;
       ss << lines[curr_idx++];
       ss >> idx >> x >> y >> z;
-      p.m.vertices.emplace_back(
-          vertex_t{p.m.unique_positions[idx], glm::vec3{x, y, z}});
+      p.m.vertices.emplace_back(vertex_t{p.m.unique_positions[idx], glm::vec3{x, y, z}});
+      p.m.vertex_index.emplace_back(idx);
       ss.clear();
     }
+
     // read triangle indices
     std::size_t num_triangles{0u};
     ss << lines[curr_idx++];
@@ -79,8 +80,42 @@ void puma::robot::load_parts_from_files(
       unsigned int a, b, c;
       ss << lines[curr_idx++];
       ss >> a >> b >> c;
-      p.m.indices.emplace_back(triangle_t{a, b, c});
+      p.m.tris.emplace_back(triangle_t{a, b, c});
       ss.clear();
+    }
+
+    // read silhouette edges into a map
+    std::size_t num_edges;
+    ss << lines[curr_idx++];
+    ss >> num_edges;
+    ss.clear();
+    for (std::size_t e = 0u; e < num_edges; ++e) {
+      unsigned int v1, v2, t1, t2;
+      ss << lines[curr_idx++];
+      ss >> v1 >> v2 >> t1 >> t2;
+      auto edge = puma::edge_t(v1, v2);
+      p.m.edges[edge] = neighbors_t{t1, t2};
+      ss.clear();
+    }
+
+    // generate adjacenct tris indices for silhouette rendering
+    for (std::size_t t = 0u; t < num_triangles; t++) {
+      const puma::triangle_t& triangle = p.m.tris[t];
+
+      for (std::size_t v = 0u; v < 3; v++) {
+        auto v1 = p.m.vertex_index[triangle.indices[v]];
+        auto v2 = p.m.vertex_index[triangle.indices[(v + 1) % 3]];
+        puma::edge_t e(v1, v2);
+        assert(p.m.edges.find(e) != p.m.edges.end());
+        puma::neighbors_t n = p.m.edges[e];
+
+        const puma::triangle_t& other_triangle = p.m.tris[n.other(t)];
+
+        GLuint opposite = p.m.opposite_vertex(e, other_triangle);
+
+        p.m.adjacent_tris.push_back(triangle.indices[v]);
+        p.m.adjacent_tris.push_back(opposite);
+      }
     }
 
     axes = {glm::vec3{0.0f, -1.0f, 0.0f},
@@ -100,6 +135,7 @@ void puma::robot::load_parts_from_files(
       axes[i] = glm::normalize(axes[i]);
     }
     p.g.program = sm.programs[shader_t::DEFAULT_SHADER].idx;
+    p.g.shadow_program = sm.programs[shader_t::SILHOUETTE_SHADER].idx;
     p.g.reset_api_elements(p.m);
   }
 }
@@ -129,8 +165,14 @@ void puma::robot::recalculate_transformations() {
 }
 
 void puma::robot::draw() {
+  // Main render pass
   for (auto &p : parts) {
     utils::render_triangles(p);
+  }
+
+  for (auto& p : parts) {
+    glLineWidth(2.0f);
+    utils::render_silhouettes(p);
   }
 }
 
