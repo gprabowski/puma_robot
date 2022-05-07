@@ -24,8 +24,10 @@ void main_loop(puma::scene &s) {
 int main() {
   log::init();
   auto glfw_win = init::init_all("tinyCAD");
-  auto s = puma::scene::get_initialized_scene();
-
+  puma::scene s;
+  s.r.load_parts_from_files({"assets/mesh1.txt", "assets/mesh2.txt",
+                             "assets/mesh3.txt", "assets/mesh4.txt",
+                             "assets/mesh5.txt", "assets/mesh6.txt"});
   main_loop(s);
 
   init::cleanup();

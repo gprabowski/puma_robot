@@ -19,11 +19,17 @@ struct gl_object {
 
   void reset_api_elements(puma::mesh &m);
 
+  gl_object &operator=(const gl_object &r) = delete;
+  gl_object &operator=(const gl_object &&r) = delete;
+  gl_object(const gl_object &) = delete;
+  gl_object(const gl_object &&) = delete;
+
   gl_object() {
     glCreateBuffers(1, &vbo);
     glCreateBuffers(1, &ebo);
     glCreateVertexArrays(1, &vao);
   }
+
   ~gl_object() {
     if (glIsBuffer(vbo)) {
       glDeleteBuffers(1, &vbo);
