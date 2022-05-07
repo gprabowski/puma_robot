@@ -40,18 +40,7 @@ void main()
 
         normal = cross(e3,e1);
 
-        emit_line(0, 2);
-        emit_line(2, 4);
-        emit_line(4, 0);
-
-        //emit_line(0, 1);
-        //emit_line(2, 1);
-        //emit_line(2, 3);
-        //emit_line(4, 3);
-        //emit_line(4, 5);
-        //emit_line(0, 5);
-
-        /*if (dot(normal, light_dir) <= 0) {
+        if (dot(normal, light_dir) <= 0) {
             emit_line(0, 2);
         }
 
@@ -67,6 +56,6 @@ void main()
 
         if (dot(normal, light_dir) <= 0) {
             emit_line(4, 0);
-        }*/
+        }
     }
 }
