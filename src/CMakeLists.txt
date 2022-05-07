@@ -29,7 +29,9 @@ if(CLANG_TIDY_EXE)
     set_target_properties( puma PROPERTIES CXX_CLANG_TIDY "${DO_CLANG_TIDY}" ) 
 endif()
 
-target_compile_options(puma PUBLIC -Werror -Wall)
+if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+    target_compile_options(puma PUBLIC -Werror -Wall)
+endif()
 target_compile_features(puma PUBLIC cxx_std_17)
 set_target_properties(puma PROPERTIES
     CXX_STANDARD 17 )
