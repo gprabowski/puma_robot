@@ -6,6 +6,8 @@
 
 namespace handlers {
 
+const float angle_delta = 0.02f;
+
 void handle_keyboard(puma::scene &s) {
   static float delta_time = 0.0f;
   static float last_frame = 0.0f;
@@ -32,35 +34,35 @@ void handle_keyboard(puma::scene &s) {
         glm::normalize(glm::cross(state.cam_front, state.cam_up)) * cameraSpeed;
   }
   if (state.pressed[GLFW_KEY_Y]) {
-    s.r.angles[0] += 0.5;
+    s.r.angles[0] += angle_delta;
   }
   if (state.pressed[GLFW_KEY_U]) {
-    s.r.angles[1] += 0.5;
+    s.r.angles[1] += angle_delta;
   }
   if (state.pressed[GLFW_KEY_I]) {
-    s.r.angles[2] += 0.5;
+    s.r.angles[2] += angle_delta;
   }
   if (state.pressed[GLFW_KEY_O]) {
-    s.r.angles[3] += 0.5;
+    s.r.angles[3] += angle_delta;
   }
   if (state.pressed[GLFW_KEY_P]) {
-    s.r.angles[4] += 0.5;
+    s.r.angles[4] += angle_delta;
   }
 
   if (state.pressed[GLFW_KEY_G]) {
-    s.r.angles[0] -= 0.5;
+    s.r.angles[0] -= angle_delta;
   }
   if (state.pressed[GLFW_KEY_H]) {
-    s.r.angles[1] -= 0.5;
+    s.r.angles[1] -= angle_delta;
   }
   if (state.pressed[GLFW_KEY_J]) {
-    s.r.angles[2] -= 0.5;
+    s.r.angles[2] -= angle_delta;
   }
   if (state.pressed[GLFW_KEY_K]) {
-    s.r.angles[3] -= 0.5;
+    s.r.angles[3] -= angle_delta;
   }
   if (state.pressed[GLFW_KEY_L]) {
-    s.r.angles[4] -= 0.5;
+    s.r.angles[4] -= angle_delta;
   }
 }
 

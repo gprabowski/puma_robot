@@ -7,6 +7,7 @@
 #include <sstream>
 #include <string>
 #include <vector>
+#include <framebuffer.h>
 
 std::vector<std::string>
 read_mesh_file(const std::filesystem::path mesh_file) {
@@ -135,7 +136,6 @@ void puma::robot::load_parts_from_files(
       axes[i] = glm::normalize(axes[i]);
     }
     p.g.program = sm.programs[shader_t::DEFAULT_SHADER].idx;
-    p.g.shadow_program = sm.programs[shader_t::SILHOUETTE_SHADER].idx;
     p.g.reset_api_elements(p.m);
   }
 }
@@ -164,16 +164,93 @@ void puma::robot::recalculate_transformations() {
   }
 }
 
-void puma::robot::draw() {
-  // Main render pass
-  for (auto &p : parts) {
-    utils::render_triangles(p);
-  }
+void puma::scene::render_into_depth() {
+  auto& sm = shader_manager::get_manager();
 
-  for (auto& p : parts) {
-    glLineWidth(2.0f);
-    utils::render_silhouettes(p);
+  glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
+
+  for (auto& p : r.parts) {
+    p.g.program = sm.programs[shader_t::NULL_SHADER].idx;
+    utils::render_triangles(p);
   }
 }
 
-void puma::scene::draw() { r.draw(); }
+void puma::scene::render_into_stencil() {
+  auto& sm = shader_manager::get_manager();
+
+  glDepthMask(GL_FALSE);
+  glEnable(GL_DEPTH_CLAMP);
+  glDisable(GL_CULL_FACE);
+
+  // we need the stencil test to be enabled but we want it
+  // to succeed always. Only the depth test matters.
+  glStencilFunc(GL_ALWAYS, 0, 0xff);
+
+  // set the stencil test per the depth fail algorithm
+  glStencilOpSeparate(GL_BACK, GL_KEEP, GL_INCR_WRAP, GL_KEEP);
+  glStencilOpSeparate(GL_FRONT, GL_KEEP, GL_DECR_WRAP, GL_KEEP);
+
+  for (auto& p : r.parts) {
+    p.g.program = sm.programs[shader_t::SHADOW_VOLUME_SHADER].idx;
+    utils::render_triangles(p);
+  }
+
+  glDisable(GL_DEPTH_CLAMP);
+  glEnable(GL_CULL_FACE);
+}
+
+void puma::scene::render_shadowed() {
+  auto& sm = shader_manager::get_manager();
+
+  glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
+
+  // draw only if the corresponding stencil value is zero
+  glStencilFunc(GL_EQUAL, 0x0, 0xFF);
+
+  // prevent update to the stencil buffer
+  glStencilOpSeparate(GL_BACK, GL_KEEP, GL_KEEP, GL_KEEP);
+  glStencilOpSeparate(GL_FRONT, GL_KEEP, GL_KEEP, GL_KEEP);
+
+  glDepthFunc(GL_LEQUAL);
+
+  for (auto& p : r.parts) {
+    p.g.program = sm.programs[shader_t::DEFAULT_SHADER].idx;
+    utils::render_triangles(p);
+  }
+}
+
+void puma::scene::render_ambient() {
+
+}
+
+void puma::scene::render_silhouettes() {
+  auto& sm = shader_manager::get_manager();
+
+  glDepthFunc(GL_LEQUAL);
+
+  for (auto& p : r.parts) {
+    glLineWidth(5.0f);
+    p.g.program = sm.programs[shader_t::SILHOUETTE_SHADER].idx;
+    utils::render_triangles(p);
+  }
+}
+
+void puma::scene::draw() {
+  glDepthMask(GL_TRUE);
+
+  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+
+  render_into_depth();
+
+  glEnable(GL_STENCIL_TEST);
+
+  render_into_stencil();
+
+  render_shadowed();
+
+  glDisable(GL_STENCIL_TEST);
+
+  //render_silhouettes();
+
+  render_ambient();
+}

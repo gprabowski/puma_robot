@@ -26,7 +26,6 @@ struct robot {
       const std::array<const std::filesystem::path, 6>
           &filenames);
   void recalculate_transformations();
-  void draw();
 };
 
 struct environment {};
@@ -37,6 +36,14 @@ struct scene {
   environment e;
   mirror m;
   void draw();
+
+  // various render passes
+private:
+  void render_into_depth();
+  void render_into_stencil();
+  void render_shadowed();
+  void render_ambient();
+  void render_silhouettes();
 };
 
 }; // namespace puma
