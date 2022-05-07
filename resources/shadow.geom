@@ -35,7 +35,7 @@ void emit_quad(vec3 start_vertex, vec3 end_vertex)
     EmitVertex();
 
     // vertex #4: the ending vertex projected to infinity
-    gl_Position = proj * view * vec4(light_dir , 0.0);
+    gl_Position = proj * view * vec4(light_dir, 0.0);
     EmitVertex();
 
     EndPrimitive();
@@ -52,7 +52,7 @@ void main()
     vec3 normal = cross(e1,e2);
     vec3 light_dir = light_pos.xyz - world_pos[0];
 
-    if (dot(normal, light_dir) > 0.00001) {
+    if (dot(normal, light_dir) > 0) {
 
         normal = cross(e3,e1);
 

@@ -220,7 +220,7 @@ void puma::scene::render_shadowed() {
 }
 
 void puma::scene::render_ambient() {
-
+  //TODO
 }
 
 void puma::scene::render_silhouettes() {
