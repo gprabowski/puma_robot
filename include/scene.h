@@ -2,6 +2,11 @@
 
 #include <array>
 
+#define GLM_FORCE_RADIANS
+#include <glm/ext/matrix_transform.hpp>
+#include <glm/glm.hpp>
+#include <glm/gtx/quaternion.hpp>
+
 #include <gl_object.h>
 #include <transformation.h>
 
@@ -30,13 +35,32 @@ struct robot {
 };
 
 struct environment {};
-struct mirror {};
+
+struct mirror {
+  gl_object g;
+  transformation t;
+  mesh m;
+  bool visible{true};
+  float speed{1.0f};
+  glm::vec3 current_point{0.0f, 0.0f, 0.0f};
+  glm::vec3 current_normal;
+
+  void generate();
+  void move(double delta);
+};
 
 struct scene {
   robot r;
   environment e;
   mirror m;
+  bool animation{true};
   void draw();
+  scene() {
+    r.load_parts_from_files({"assets/mesh1.txt", "assets/mesh2.txt",
+                             "assets/mesh3.txt", "assets/mesh4.txt",
+                             "assets/mesh5.txt", "assets/mesh6.txt"});
+    m.generate();
+  }
 };
 
 }; // namespace puma

@@ -11,6 +11,8 @@
 #include <shader_manager.h>
 #include <utils.h>
 
+#include <mtxlib.h>
+
 namespace update {
 void setup_globals(const ImVec2 &s) {
   auto &state = input_state::get_input_state();
@@ -60,6 +62,21 @@ void refresh_ubos() {
   glBindBuffer(GL_UNIFORM_BUFFER, sm.common_ubo);
 }
 
-void per_frame_update(puma::scene &s) { s.r.recalculate_transformations(); }
+void per_frame_update(puma::scene &s) {
+  static auto last_tick = glfwGetTime();
+  auto current_tick = glfwGetTime();
+  auto delta = last_tick - current_tick;
+  last_tick = current_tick;
+
+  if (s.animation) {
+    s.m.move(delta);
+    vector3 cp(s.m.current_point.x, s.m.current_point.y, s.m.current_point.z);
+    vector3 cn(s.m.current_normal.x, s.m.current_normal.y,
+               s.m.current_normal.z);
+    utils::inverse_kinematics(cp, cn, s.r.angles[0], s.r.angles[1],
+                              s.r.angles[2], s.r.angles[3], s.r.angles[4]);
+  }
+  s.r.recalculate_transformations();
+}
 
 } // namespace update

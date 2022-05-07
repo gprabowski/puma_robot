@@ -10,10 +10,15 @@
 #define GLFW_INCLUDE_NONE
 #include <GLFW/glfw3.h>
 
+#include <mtxlib.h>
+
 namespace utils {
 
 void set_model_uniform(transformation &t);
 void refresh_common_uniforms(GLuint program);
+
+void inverse_kinematics(vector3 pos, vector3 normal, float &a1, float &a2,
+                        float &a3, float &a4, float &a5);
 
 template <typename O> void render_triangles(O &o) {
   if (!o.visible) {

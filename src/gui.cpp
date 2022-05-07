@@ -224,10 +224,21 @@ void render_robot_gui(puma::robot &r) {
   for (auto i = 0; i < 6; ++i) {
     render_robot_part_gui(r.parts[i], i);
   }
+  for(auto i = 0; i < 5; ++i) {
+      auto n = std::string("Angle #") + std::to_string(i);
+      ImGui::SliderFloat(n.c_str(), &r.angles[i], -180, 180);
+  }
+}
+
+void render_mirror_gui(puma::mirror &m) {
+  render_transformation_gui(m.t);
+  ImGui::SliderFloat3("Point", glm::value_ptr(m.current_point), -5.0f, 5.0f);
+  ImGui::SliderFloat3("Normal", glm::value_ptr(m.current_normal), -5.0f, 5.0f);
 }
 
 void render_scene_gui(puma::scene &s) {
   ImGui::Begin("Scene Settings");
+
 
   ImGui::Text("%s", "Light");
   std::string desc = ("Show more##light");
@@ -236,6 +247,14 @@ void render_scene_gui(puma::scene &s) {
     ImGui::SliderFloat4("Position", glm::value_ptr(frame_state::light_pos),
                         -10.f, 10.f);
     ImGui::ColorEdit4("Color", glm::value_ptr(frame_state::light_color));
+    ImGui::TreePop();
+  }
+
+  ImGui::Text("%s", "Scene");
+  desc = ("Show more##scene");
+  ImGui::SameLine(160.f);
+  if (ImGui::TreeNode(desc.c_str())) {
+    ImGui::Checkbox("Animation", &s.animation);
     ImGui::TreePop();
   }
 
@@ -258,6 +277,7 @@ void render_scene_gui(puma::scene &s) {
   desc = ("Show more##mirror");
   ImGui::SameLine(160.f);
   if (ImGui::TreeNode(desc.c_str())) {
+    render_mirror_gui(s.m);
     ImGui::TreePop();
   }
   ImGui::End();
