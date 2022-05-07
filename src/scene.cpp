@@ -9,7 +9,7 @@
 #include <vector>
 
 std::vector<std::string>
-read_mesh_file(const std::filesystem::path::value_type *mesh_file) {
+read_mesh_file(const std::filesystem::path mesh_file) {
   std::vector<std::string> ret;
   std::ifstream ifs;
 
@@ -34,7 +34,7 @@ read_mesh_file(const std::filesystem::path::value_type *mesh_file) {
 }
 
 void puma::robot::load_parts_from_files(
-    const std::array<const std::filesystem::path::value_type *, 6> &filenames) {
+    const std::array<const std::filesystem::path, 6> &filenames) {
   auto &sm = shader_manager::get_manager();
   std::stringstream ss;
   for (std::size_t i = 0u; i < parts.size(); ++i) {

@@ -25,8 +25,7 @@ shader_manager::~shader_manager() {
   glDeleteBuffers(1, &common_ubo);
 }
 
-std::string shader_manager::read_shader_file(
-    const std::filesystem::path::value_type *shader_file) {
+std::string shader_manager::read_shader_file(const std::filesystem::path shader_file) {
   std::ifstream ifs;
 
   auto ex = ifs.exceptions();

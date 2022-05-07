@@ -33,7 +33,7 @@ private:
   shader_manager();
 
   std::string
-  read_shader_file(const std::filesystem::path::value_type *shader_file);
+  read_shader_file(const std::filesystem::path shader_file);
 
   std::map<std::string, shader> cache;
 };

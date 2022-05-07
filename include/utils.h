@@ -22,7 +22,7 @@ template <typename O> void render_triangles(O &o) {
   transformation &t = o.t;
   gl_object &g = o.g;
   puma::mesh &m = o.m;
-
+  
   glBindVertexArray(g.vao);
   glUseProgram(g.program);
   utils::set_model_uniform(t);
