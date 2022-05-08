@@ -42,6 +42,7 @@ message("CMAKE ROOT IS ${CMAKE_SOURCE_DIR}")
 target_include_directories(puma 
     PUBLIC 
     ${CMAKE_SOURCE_DIR}/thirdparty/glm/glm
+    ${CMAKE_SOURCE_DIR}/thirdparty/mtxlib
     ${CMAKE_SOURCE_DIR}/thirdparty
     ${CMAKE_SOURCE_DIR}/thirdparty/implot
     ${CMAKE_SOURCE_DIR}/thirdparty/glfw/include/
@@ -53,6 +54,7 @@ message(STATUS "<<${OPENGL_INCLUDE_DIRS}>>")
 
 target_link_libraries(puma 
         glad
+        mtxlib
         spdlog
         glfw
         glm

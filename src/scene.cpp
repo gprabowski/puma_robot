@@ -3,6 +3,7 @@
 #include <utils.h>
 
 #include <fstream>
+#include <iostream>
 #include <shader_manager.h>
 #include <sstream>
 #include <string>
@@ -67,8 +68,8 @@ void puma::robot::load_parts_from_files(
       float x, y, z;
       ss << lines[curr_idx++];
       ss >> idx >> x >> y >> z;
-      p.m.vertices.emplace_back(vertex_t{p.m.unique_positions[idx], glm::vec3{x, y, z}});
       p.m.vertex_index.emplace_back(idx);
+      p.m.vertices.push_back(vertex_t{p.m.unique_positions[idx], glm::vec3{x, y, z}});
       ss.clear();
     }
 
@@ -119,11 +120,11 @@ void puma::robot::load_parts_from_files(
       }
     }
 
-    axes = {glm::vec3{0.0f, -1.0f, 0.0f},
-            {0.0f, 0.0f, -1.0f},
-            {0.0f, 0.0f, -1.0f},
-            {-1.0f, 0.0f, 0.0f},
-            {0.0f, 0.0f, -1.0f}};
+    axes = {glm::vec3{0.0f, 1.0f, 0.0f},
+            {0.0f, 0.0f, 1.0f},
+            {0.0f, 0.0f, 1.0f},
+            {1.0f, 0.0f, 0.0f},
+            {0.0f, 0.0f, 1.0f}};
 
     positions = {glm::vec3{0.0f, 0.0f, 0.0f},
                  {0.0f, 0.27f, 0.0f},
@@ -250,7 +251,53 @@ void puma::scene::draw() {
 
   glDisable(GL_STENCIL_TEST);
 
-  //render_silhouettes();
-
   render_ambient();
+}
+
+void puma::mirror::generate() {
+  static auto &sm = shader_manager::get_manager();
+  // generate vertices
+  m.vertices = {
+      {{-0.0f, -1.0f, 0.7f}, {1.0f, 0.0f, 0.0f}},
+      {{-0.0f, -1.0f, -0.7f}, {1.0f, 0.0f, 0.0f}},
+      {{-0.0f, 1.0f, -0.7f}, {1.0f, 0.0f, 0.0f}},
+      {{-0.0f, 1.0f, 0.7f}, {1.0f, 0.0f, 0.0f}},
+
+      {{-0.0f, -1.0f, 0.7f}, {-1.0f, 0.0f, 0.0f}},
+      {{-0.0f, -1.0f, -0.7f}, {-1.0f, 0.0f, 0.0f}},
+      {{-0.0f, 1.0f, -0.7f}, {-1.0f, 0.0f, 0.0f}},
+      {{-0.0f, 1.0f, 0.7f}, {-1.0f, 0.0f, 0.0f}},
+  };
+
+  constexpr float initial_angle = 0;
+  // generate indices
+  m.tris = {{0, 1, 2}, {2, 3, 0}, {5, 4, 7}, {7, 6, 5}};
+  t.rotation = {0, 0, initial_angle};
+  t.translation = {-1.80, 0.0f, -0.2};
+  // get gl
+  g.program = sm.programs[shader_t::DEFAULT_SHADER].idx;
+  current_normal = glm::rotate(glm::mat4(1.0f), glm::radians(initial_angle),
+                               {0.0f, 0.0f, 1.0f}) *
+                   glm::vec4(1.0f, 0.0f, 0.0f, 0.0f);
+  g.reset_api_elements(m);
+}
+
+void puma::mirror::move(double delta) {
+  static float total_time = 0.0f;
+  total_time += delta * speed;
+  constexpr float r = 0.3f;
+  // get new point location
+  current_point =
+      r * glm::vec3(0.0f, glm::sin(total_time), glm::cos(total_time));
+
+  current_point =
+      glm::translate(glm::mat4(1.0f),
+                     {t.translation.x, t.translation.y, t.translation.z}) *
+      glm::rotate(glm::mat4(1.0f), glm::radians(t.rotation.z),
+                  {0.0, 0.0, 1.0f}) *
+      glm::vec4(current_point, 1.0f);
+
+  current_normal = glm::rotate(glm::mat4(1.0f), glm::radians(t.rotation.z),
+                               {0.0f, 0.0f, 1.0f}) *
+                   glm::vec4(1.0f, 0.0f, 0.0f, 0.0f);
 }

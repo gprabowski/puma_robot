@@ -124,7 +124,9 @@ void ogl_setup(std::shared_ptr<GLFWwindow> w) {
                         true);
 #endif
 
-  // glEnable(GL_CULL_FACE);
+  glEnable(GL_CULL_FACE);
+  glCullFace(GL_BACK);
+  glFrontFace(GL_CCW);
   glEnable(GL_DEPTH_TEST);
   glEnable(GL_LINE_SMOOTH);
   glEnable(GL_BLEND);
