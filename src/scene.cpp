@@ -115,8 +115,8 @@ void puma::robot::load_parts_from_files(
 
         GLuint opposite = p.m.opposite_vertex(e, other_triangle);
 
-        p.m.adjacent_tris.push_back(triangle.indices[v]);
-        p.m.adjacent_tris.push_back(opposite);
+        p.m.elements.push_back(triangle.indices[v]);
+        p.m.elements.push_back(opposite);
       }
     }
 
@@ -148,9 +148,7 @@ void decompose(const glm::mat4 &m, glm::vec3 &trans, glm::vec3 &scale,
            glm::length(glm::vec3(m[1])),
            glm::length(glm::vec3(m[2]))};
 
-  glm::mat4 m_rot(m[0] / scale.x, 
-                  m[1] / scale.y, 
-                  m[2] / scale.z, 
+  glm::mat4 m_rot(m[0] / scale.x, m[1] / scale.y, m[2] / scale.z,
                   glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
   rot = glm::degrees(glm::eulerAngles(glm::quat_cast(m_rot)));
 }
@@ -175,7 +173,7 @@ void puma::scene::render_into_depth() {
 
   for (auto& p : r.parts) {
     p.g.program = sm.programs[shader_t::NULL_SHADER].idx;
-    utils::render_triangles(p);
+    utils::render_triangles(p, GL_TRIANGLES_ADJACENCY);
   }
 }
 
@@ -196,7 +194,7 @@ void puma::scene::render_into_stencil() {
 
   for (auto& p : r.parts) {
     p.g.program = sm.programs[shader_t::SHADOW_VOLUME_SHADER].idx;
-    utils::render_triangles(p);
+    utils::render_triangles(p, GL_TRIANGLES_ADJACENCY);
   }
 
   glDisable(GL_DEPTH_CLAMP);
@@ -219,8 +217,10 @@ void puma::scene::render_shadowed() {
 
   for (auto& p : r.parts) {
     p.g.program = sm.programs[shader_t::DEFAULT_SHADER].idx;
-    utils::render_triangles(p);
+    utils::render_triangles(p, GL_TRIANGLES_ADJACENCY);
   }
+
+  utils::render_triangles(m, GL_TRIANGLES);
 }
 
 void puma::scene::render_ambient() {
@@ -262,7 +262,8 @@ void puma::mirror::generate() {
 
   constexpr float initial_angle = 0;
   // generate indices
-  m.tris = {{0, 1, 2}, {2, 3, 0}, {5, 4, 7}, {7, 6, 5}};
+  m.tris = {{0, 1, 2}, {2, 3, 0}, {5, 4, 6}, {4, 7, 6}};
+  m.elements = {0, 1, 2, 2, 3, 0, 5, 4, 6, 4, 7, 6};
   t.rotation = {0, 0, initial_angle};
   t.translation = {-1.80, 0.0f, -0.2};
   // get gl

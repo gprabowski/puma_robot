@@ -63,7 +63,7 @@ struct mesh {
   std::vector<glm::vec3> unique_positions;
   std::vector<vertex_t> vertices;
   std::vector<triangle_t> tris;
-  std::vector<GLuint> adjacent_tris;
+  std::vector<GLuint> elements;
   std::vector<GLuint> vertex_index;
   std::map<edge_t, neighbors_t, compare_edges> edges;
 

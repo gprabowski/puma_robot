@@ -39,9 +39,7 @@ struct mirror {
   gl_object g;
   transformation t;
   mesh m;
-
   bool visible{true};
-
   float speed{1.0f};
   glm::vec3 current_point{0.0f, 0.0f, 0.0f};
   glm::vec3 current_normal;
@@ -58,9 +56,9 @@ struct scene {
   void draw();
 
   scene() {
-    r.load_parts_from_files({ "assets/mesh1.txt", "assets/mesh2.txt",
+    r.load_parts_from_files({"assets/mesh1.txt", "assets/mesh2.txt",
                              "assets/mesh3.txt", "assets/mesh4.txt",
-                             "assets/mesh5.txt", "assets/mesh6.txt" });
+                             "assets/mesh5.txt", "assets/mesh6.txt"});
     m.generate();
   }
 
