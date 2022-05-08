@@ -25,7 +25,8 @@ shader_manager::~shader_manager() {
   glDeleteBuffers(1, &common_ubo);
 }
 
-std::string shader_manager::read_shader_file(const std::filesystem::path shader_file) {
+std::string
+shader_manager::read_shader_file(const std::filesystem::path shader_file) {
   std::ifstream ifs;
 
   auto ex = ifs.exceptions();
@@ -34,8 +35,8 @@ std::string shader_manager::read_shader_file(const std::filesystem::path shader_
 
   ifs.open(shader_file);
   ifs.ignore(std::numeric_limits<std::streamsize>::max());
-  auto size = ifs.gcount();
-  //GK2_PUMA_INFO("[SHADER] Read {0} bytes from {1}", size, shader_file);
+  // auto size = ifs.gcount();
+  // GK2_PUMA_INFO("[SHADER] Read {0} bytes from {1}", size, shader_file);
 
   ifs.clear();
   ifs.seekg(0, std::ios_base::beg);
@@ -97,8 +98,7 @@ GLuint shader_manager::add(shader_t st, const std::string &name) {
 
     if (fs::exists(name + ".geom")) {
       std::string geom_source = read_shader_file((name + ".geom").c_str());
-      geom_shader =
-        compile_shader_from_source(geom_source, GL_GEOMETRY_SHADER);
+      geom_shader = compile_shader_from_source(geom_source, GL_GEOMETRY_SHADER);
     }
 
     GLuint vertex_shader =

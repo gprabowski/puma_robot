@@ -2,16 +2,17 @@
 #include <scene.h>
 #include <utils.h>
 
+#include <framebuffer.h>
 #include <fstream>
 #include <iostream>
 #include <shader_manager.h>
 #include <sstream>
 #include <string>
 #include <vector>
-#include <framebuffer.h>
 
-std::vector<std::string>
-read_mesh_file(const std::filesystem::path mesh_file) {
+#include <frame_update.h>
+
+std::vector<std::string> read_mesh_file(const std::filesystem::path mesh_file) {
   std::vector<std::string> ret;
   std::ifstream ifs;
 
@@ -21,8 +22,8 @@ read_mesh_file(const std::filesystem::path mesh_file) {
 
   ifs.open(mesh_file);
   ifs.ignore(std::numeric_limits<std::streamsize>::max());
-  auto size = ifs.gcount();
-  //GK2_PUMA_INFO("[MESH] Read {0} bytes from {1}", size, mesh_file);
+  // auto size = ifs.gcount();
+  // GK2_PUMA_INFO("[MESH] Read {0} bytes from {1}", size, mesh_file);
 
   ifs.clear();
   ifs.seekg(0, std::ios_base::beg);
@@ -69,7 +70,8 @@ void puma::robot::load_parts_from_files(
       ss << lines[curr_idx++];
       ss >> idx >> x >> y >> z;
       p.m.vertex_index.emplace_back(idx);
-      p.m.vertices.push_back(vertex_t{p.m.unique_positions[idx], glm::vec3{x, y, z}});
+      p.m.vertices.push_back(
+          vertex_t{p.m.unique_positions[idx], glm::vec3{x, y, z}});
       ss.clear();
     }
 
@@ -102,7 +104,7 @@ void puma::robot::load_parts_from_files(
 
     // generate adjacenct tris indices for silhouette rendering
     for (std::size_t t = 0u; t < num_triangles; t++) {
-      const puma::triangle_t& triangle = p.m.tris[t];
+      const puma::triangle_t &triangle = p.m.tris[t];
 
       for (std::size_t v = 0u; v < 3; v++) {
         auto v1 = p.m.vertex_index[triangle.indices[v]];
@@ -111,7 +113,7 @@ void puma::robot::load_parts_from_files(
         assert(p.m.edges.find(e) != p.m.edges.end());
         puma::neighbors_t n = p.m.edges[e];
 
-        const puma::triangle_t& other_triangle = p.m.tris[n.other(t)];
+        const puma::triangle_t &other_triangle = p.m.tris[n.other(t)];
 
         GLuint opposite = p.m.opposite_vertex(e, other_triangle);
 
@@ -144,8 +146,7 @@ void puma::robot::load_parts_from_files(
 void decompose(const glm::mat4 &m, glm::vec3 &trans, glm::vec3 &scale,
                glm::vec3 &rot) {
   trans = glm::vec3(m[3]);
-  scale = {glm::length(glm::vec3(m[0])), 
-           glm::length(glm::vec3(m[1])),
+  scale = {glm::length(glm::vec3(m[0])), glm::length(glm::vec3(m[1])),
            glm::length(glm::vec3(m[2]))};
 
   glm::mat4 m_rot(m[0] / scale.x, m[1] / scale.y, m[2] / scale.z,
@@ -167,18 +168,18 @@ void puma::robot::recalculate_transformations() {
 }
 
 void puma::scene::render_into_depth() {
-  auto& sm = shader_manager::get_manager();
+  auto &sm = shader_manager::get_manager();
 
   glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
 
-  for (auto& p : r.parts) {
+  for (auto &p : r.parts) {
     p.g.program = sm.programs[shader_t::NULL_SHADER].idx;
     utils::render_triangles(p, GL_TRIANGLES_ADJACENCY);
   }
 }
 
 void puma::scene::render_into_stencil() {
-  auto& sm = shader_manager::get_manager();
+  auto &sm = shader_manager::get_manager();
 
   glDepthMask(GL_FALSE);
   glEnable(GL_DEPTH_CLAMP);
@@ -186,28 +187,39 @@ void puma::scene::render_into_stencil() {
 
   // we need the stencil test to be enabled but we want it
   // to succeed always. only the depth test matters.
-  glStencilFunc(GL_ALWAYS, 0, 0xff);
+  glStencilFunc(GL_ALWAYS, 0, 0x0f);
 
   // set the stencil test per the depth fail algorithm
   glStencilOpSeparate(GL_BACK, GL_KEEP, GL_INCR_WRAP, GL_KEEP);
   glStencilOpSeparate(GL_FRONT, GL_KEEP, GL_DECR_WRAP, GL_KEEP);
 
-  for (auto& p : r.parts) {
+  for (auto &p : r.parts) {
     p.g.program = sm.programs[shader_t::SHADOW_VOLUME_SHADER].idx;
     utils::render_triangles(p, GL_TRIANGLES_ADJACENCY);
   }
+
+  // mirror
+  glStencilFunc(GL_ALWAYS, 0xaf, 0xf0);
+
+  // set the stencil test per the depth fail algorithm
+  glStencilOpSeparate(GL_BACK, GL_KEEP, GL_KEEP, GL_KEEP);
+  glStencilOpSeparate(GL_FRONT, GL_KEEP, GL_KEEP, GL_REPLACE);
+
+  glDepthMask(GL_FALSE);
+  utils::render_triangles(m, GL_TRIANGLES);
+  glDepthMask(GL_TRUE);
 
   glDisable(GL_DEPTH_CLAMP);
   glEnable(GL_CULL_FACE);
 }
 
 void puma::scene::render_shadowed() {
-  auto& sm = shader_manager::get_manager();
+  auto &sm = shader_manager::get_manager();
 
   glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
 
   // draw only if the corresponding stencil value is zero
-  glStencilFunc(GL_EQUAL, 0x0, 0xFF);
+  glStencilFunc(GL_EQUAL, 0x0, 0x0f);
 
   // prevent update to the stencil buffer
   glStencilOpSeparate(GL_BACK, GL_KEEP, GL_KEEP, GL_KEEP);
@@ -215,16 +227,31 @@ void puma::scene::render_shadowed() {
 
   glDepthFunc(GL_LEQUAL);
 
-  for (auto& p : r.parts) {
+  for (auto &p : r.parts) {
     p.g.program = sm.programs[shader_t::DEFAULT_SHADER].idx;
     utils::render_triangles(p, GL_TRIANGLES_ADJACENCY);
   }
 
-  utils::render_triangles(m, GL_TRIANGLES);
+  glStencilFunc(GL_EQUAL, 0xaf, 0xf0);
+
+  // prevent update to the stencil buffer
+  glStencilOpSeparate(GL_BACK, GL_KEEP, GL_KEEP, GL_KEEP);
+  glStencilOpSeparate(GL_FRONT, GL_KEEP, GL_KEEP, GL_KEEP);
+
+  glDepthFunc(GL_LEQUAL);
+  // setup new view matrix
+  auto view = glm::scale(glm::mat4(1.0f), {1.0f, 1.0f, -1.0f}) *
+              (glm::lookAt(m.t.translation - m.current_normal, m.t.translation,
+                           {0, 1, 0}));
+  update::refresh_view(view);
+  for (auto &p : r.parts) {
+    p.g.program = sm.programs[shader_t::DEFAULT_SHADER].idx;
+    utils::render_triangles(p, GL_TRIANGLES_ADJACENCY);
+  }
 }
 
 void puma::scene::render_ambient() {
-  //TODO
+  // TODO
 }
 
 void puma::scene::draw() {

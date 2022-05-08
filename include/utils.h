@@ -15,6 +15,7 @@
 namespace utils {
 
 void set_model_uniform(transformation &t);
+void get_model_uniform(transformation &t, glm::mat4 &out);
 void refresh_common_uniforms(GLuint program);
 
 void inverse_kinematics(vector3 pos, vector3 normal, float &a1, float &a2,
@@ -27,7 +28,7 @@ template <typename O> void render_triangles(O &o, GLenum primitives) {
   transformation &t = o.t;
   gl_object &g = o.g;
   puma::mesh &m = o.m;
-  
+
   glBindVertexArray(g.vao);
   glUseProgram(g.program);
   utils::set_model_uniform(t);
