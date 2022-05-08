@@ -39,7 +39,9 @@ struct mirror {
   gl_object g;
   transformation t;
   mesh m;
+
   bool visible{true};
+
   float speed{1.0f};
   glm::vec3 current_point{0.0f, 0.0f, 0.0f};
   glm::vec3 current_normal;
@@ -68,7 +70,6 @@ private:
   void render_into_stencil();
   void render_shadowed();
   void render_ambient();
-  void render_silhouettes();
 };
 
 }; // namespace puma

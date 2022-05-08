@@ -144,10 +144,13 @@ void puma::robot::load_parts_from_files(
 void decompose(const glm::mat4 &m, glm::vec3 &trans, glm::vec3 &scale,
                glm::vec3 &rot) {
   trans = glm::vec3(m[3]);
-  scale = {glm::length(glm::vec3(m[0])), glm::length(glm::vec3(m[1])),
+  scale = {glm::length(glm::vec3(m[0])), 
+           glm::length(glm::vec3(m[1])),
            glm::length(glm::vec3(m[2]))};
 
-  glm::mat4 m_rot(m[0] / scale.x, m[1] / scale.y, m[2] / scale.z,
+  glm::mat4 m_rot(m[0] / scale.x, 
+                  m[1] / scale.y, 
+                  m[2] / scale.z, 
                   glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
   rot = glm::degrees(glm::eulerAngles(glm::quat_cast(m_rot)));
 }
@@ -184,7 +187,7 @@ void puma::scene::render_into_stencil() {
   glDisable(GL_CULL_FACE);
 
   // we need the stencil test to be enabled but we want it
-  // to succeed always. Only the depth test matters.
+  // to succeed always. only the depth test matters.
   glStencilFunc(GL_ALWAYS, 0, 0xff);
 
   // set the stencil test per the depth fail algorithm
@@ -222,18 +225,6 @@ void puma::scene::render_shadowed() {
 
 void puma::scene::render_ambient() {
   //TODO
-}
-
-void puma::scene::render_silhouettes() {
-  auto& sm = shader_manager::get_manager();
-
-  glDepthFunc(GL_LEQUAL);
-
-  for (auto& p : r.parts) {
-    glLineWidth(5.0f);
-    p.g.program = sm.programs[shader_t::SILHOUETTE_SHADER].idx;
-    utils::render_triangles(p);
-  }
 }
 
 void puma::scene::draw() {
