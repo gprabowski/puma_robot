@@ -15,6 +15,7 @@
 namespace utils {
 
 void set_model_uniform(transformation &t);
+void set_lighting(float diffuse, float specular, float ambient);
 void get_model_uniform(transformation &t, glm::mat4 &out);
 void refresh_common_uniforms(GLuint program);
 

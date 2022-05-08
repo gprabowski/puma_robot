@@ -33,7 +33,14 @@ struct robot {
   void recalculate_transformations();
 };
 
-struct environment {};
+struct environment {
+  gl_object g;
+  transformation t;
+  mesh m;
+  bool visible{ true };
+
+  void generate();
+};
 
 struct mirror {
   gl_object g;
@@ -60,6 +67,7 @@ struct scene {
                              "assets/mesh3.txt", "assets/mesh4.txt",
                              "assets/mesh5.txt", "assets/mesh6.txt"});
     m.generate();
+    e.generate();
   }
 
   // various render passes
