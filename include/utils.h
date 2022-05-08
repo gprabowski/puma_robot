@@ -15,7 +15,7 @@
 namespace utils {
 
 void set_model_uniform(transformation &t);
-void set_lighting(float diffuse, float specular, float ambient);
+void set_lighting_uniforms(GLfloat ambient, GLfloat diffuse, GLfloat specular);
 void get_model_uniform(transformation &t, glm::mat4 &out);
 void refresh_common_uniforms(GLuint program);
 
@@ -33,6 +33,7 @@ template <typename O> void render_triangles(O &o, GLenum primitives) {
   glBindVertexArray(g.vao);
   glUseProgram(g.program);
   utils::set_model_uniform(t);
+  utils::set_lighting_uniforms(g.intensity[0], g.intensity[1], g.intensity[2]);
   glVertexAttrib4f(2, g.color.r, g.color.g, g.color.b, g.color.a);
   glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
   glDrawElements(primitives, m.elements.size(), GL_UNSIGNED_INT, NULL);

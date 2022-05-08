@@ -177,7 +177,9 @@ void puma::scene::render_into_depth() {
     p.g.program = sm.programs[shader_t::NULL_SHADER].idx;
     utils::render_triangles(p, GL_TRIANGLES_ADJACENCY);
   }
-  utils::render_triangles(m, GL_TRIANGLES_ADJACENCY);
+  m.g.program = sm.programs[shader_t::NULL_SHADER].idx;
+  utils::render_triangles(m, GL_TRIANGLES);
+  e.g.program = sm.programs[shader_t::NULL_SHADER].idx;
   utils::render_triangles(e, GL_TRIANGLES);
 }
 
@@ -200,7 +202,6 @@ void puma::scene::render_into_stencil() {
     p.g.program = sm.programs[shader_t::SHADOW_VOLUME_SHADER].idx;
     utils::render_triangles(p, GL_TRIANGLES_ADJACENCY);
   }
-  utils::render_triangles(m, GL_TRIANGLES_ADJACENCY);
 
   /*// mirror
   glStencilFunc(GL_ALWAYS, 0xa0, 0xf0);
@@ -230,12 +231,18 @@ void puma::scene::render_shadowed() {
 
   glDepthFunc(GL_LEQUAL);
 
-  utils::set_lighting(0.8f, 0.8f, 0.0f);
+  auto no_ambient = glm::vec3(0.0f, 0.8f, 0.8f);
+  
   for (auto &p : r.parts) {
     p.g.program = sm.programs[shader_t::DEFAULT_SHADER].idx;
+    p.g.intensity = no_ambient;
     utils::render_triangles(p, GL_TRIANGLES_ADJACENCY);
   }
-  utils::render_triangles(m, GL_TRIANGLES_ADJACENCY);
+  m.g.program = sm.programs[shader_t::DEFAULT_SHADER].idx;
+  m.g.intensity = no_ambient;
+  utils::render_triangles(m, GL_TRIANGLES);
+  e.g.program = sm.programs[shader_t::DEFAULT_SHADER].idx;
+  e.g.intensity = no_ambient;
   utils::render_triangles(e, GL_TRIANGLES);
 
   //glStencilFunc(GL_EQUAL, 0xa0, 0xf0);
@@ -262,12 +269,18 @@ void puma::scene::render_ambient() {
   glBlendEquation(GL_FUNC_ADD);
   glBlendFunc(GL_ONE, GL_ONE);
 
-  utils::set_lighting(0.0f, 0.0f, 0.2f);
+  auto ambient = glm::vec3(0.2f, 0.0f, 0.0f);
+
   for (auto& p : r.parts) {
     p.g.program = sm.programs[shader_t::DEFAULT_SHADER].idx;
+    p.g.intensity = ambient;
     utils::render_triangles(p, GL_TRIANGLES_ADJACENCY);
   }
-  utils::render_triangles(m, GL_TRIANGLES_ADJACENCY);
+  m.g.program = sm.programs[shader_t::DEFAULT_SHADER].idx;
+  m.g.intensity = ambient;
+  utils::render_triangles(m, GL_TRIANGLES);
+  e.g.intensity = ambient;
+  e.g.program = sm.programs[shader_t::DEFAULT_SHADER].idx;
   utils::render_triangles(e, GL_TRIANGLES);
 
   glDisable(GL_BLEND);
@@ -295,41 +308,41 @@ void puma::environment::generate() {
   static auto& sm = shader_manager::get_manager();
   // generate vertices
   m.vertices = {
-      // east wall
-      {{5.0f, 0.0f, -5.0f}, {-1.0f, 0.0f, 0.0f}},
-      {{5.0f, 5.0f, -5.0f}, {-1.0f, 0.0f, 0.0f}},
-      {{5.0f, 5.0f, 5.0f}, {-1.0f, 0.0f, 0.0f}},
-      {{5.0f, 0.0f, 5.0f}, {-1.0f, 0.0f, 0.0f}},
+    // east wall
+    {{5.0f, 0.0f, -5.0f}, {-1.0f, 0.0f, 0.0f}},
+    {{5.0f, 5.0f, -5.0f}, {-1.0f, 0.0f, 0.0f}},
+    {{5.0f, 5.0f, 5.0f}, {-1.0f, 0.0f, 0.0f}},
+    {{5.0f, 0.0f, 5.0f}, {-1.0f, 0.0f, 0.0f}},
 
-      // west wall
-      {{-5.0f, 0.0f, -5.0f}, {1.0f, 0.0f, 0.0f}},
-      {{-5.0f, 5.0f, -5.0f}, {1.0f, 0.0f, 0.0f}},
-      {{-5.0f, 5.0f, 5.0f}, {1.0f, 0.0f, 0.0f}},
-      {{-5.0f, 0.0f, 5.0f}, {1.0f, 0.0f, 0.0f}},
+    // west wall
+    {{-5.0f, 0.0f, -5.0f}, {1.0f, 0.0f, 0.0f}},
+    {{-5.0f, 5.0f, -5.0f}, {1.0f, 0.0f, 0.0f}},
+    {{-5.0f, 5.0f, 5.0f}, {1.0f, 0.0f, 0.0f}},
+    {{-5.0f, 0.0f, 5.0f}, {1.0f, 0.0f, 0.0f}},
 
-      // north wall
-      {{-5.0f, 0.0f, 5.0f}, {0.0f, 0.0f, -1.0f}},
-      {{-5.0f, 5.0f, 5.0f}, {0.0f, 0.0f, -1.0f}},
-      {{5.0f, 5.0f, 5.0f}, {0.0f, 0.0f, -1.0f}},
-      {{5.0f, 0.0f, 5.0f}, {0.0f, 0.0f, -1.0f}},
+    // north wall
+    {{-5.0f, 0.0f, 5.0f}, {0.0f, 0.0f, -1.0f}},
+    {{-5.0f, 5.0f, 5.0f}, {0.0f, 0.0f, -1.0f}},
+    {{5.0f, 5.0f, 5.0f}, {0.0f, 0.0f, -1.0f}},
+    {{5.0f, 0.0f, 5.0f}, {0.0f, 0.0f, -1.0f}},
 
-      // south wall
-      {{-5.0f, 0.0f, -5.0f}, {0.0f, 0.0f, 1.0f}},
-      {{-5.0f, 5.0f, -5.0f}, {0.0f, 0.0f, 1.0f}},
-      {{5.0f, 5.0f, -5.0f}, {0.0f, 0.0f, 1.0f}},
-      {{5.0f, 0.0f, -5.0f}, {0.0f, 0.0f, 1.0f}},
+    // south wall
+    {{-5.0f, 0.0f, -5.0f}, {0.0f, 0.0f, 1.0f}},
+    {{-5.0f, 5.0f, -5.0f}, {0.0f, 0.0f, 1.0f}},
+    {{5.0f, 5.0f, -5.0f}, {0.0f, 0.0f, 1.0f}},
+    {{5.0f, 0.0f, -5.0f}, {0.0f, 0.0f, 1.0f}},
 
-      // floor
-      {{-5.0f, 0.0f, 5.0f}, {0.0f, 1.0f, 0.0f}},
-      {{-5.0f, 0.0f, -5.0f}, {0.0f, 1.0f, 0.0f}},
-      {{5.0f, 0.0f, -5.0f}, {0.0f, 1.0f, 0.0f}},
-      {{5.0f, 0.0f, 5.0f}, {0.0f, 1.0f, 0.0f}},
+    // floor
+    {{-5.0f, 0.0f, 5.0f}, {0.0f, 1.0f, 0.0f}},
+    {{-5.0f, 0.0f, -5.0f}, {0.0f, 1.0f, 0.0f}},
+    {{5.0f, 0.0f, -5.0f}, {0.0f, 1.0f, 0.0f}},
+    {{5.0f, 0.0f, 5.0f}, {0.0f, 1.0f, 0.0f}},
 
-      // ceiling
-      {{-5.0f, 5.0f, 5.0f}, {0.0f, -1.0f, 0.0f}},
-      {{-5.0f, 5.0f, -5.0f}, {0.0f, -1.0f, 0.0f}},
-      {{5.0f, 5.0f, -5.0f}, {0.0f, -1.0f, 0.0f}},
-      {{5.0f, 5.0f, 5.0f}, {0.0f, -1.0f, 0.0f}},
+    // ceiling
+    {{-5.0f, 5.0f, 5.0f}, {0.0f, -1.0f, 0.0f}},
+    {{-5.0f, 5.0f, -5.0f}, {0.0f, -1.0f, 0.0f}},
+    {{5.0f, 5.0f, -5.0f}, {0.0f, -1.0f, 0.0f}},
+    {{5.0f, 5.0f, 5.0f}, {0.0f, -1.0f, 0.0f}},
   };
 
   // generate indices
@@ -366,10 +379,10 @@ void puma::mirror::generate() {
   constexpr float initial_angle = 0;
   // generate indices
   m.tris = {{0, 1, 2}, {2, 3, 0}, {5, 4, 6}, {4, 7, 6}};
-  m.elements = {0, 6, 1, 4, 2, 3,
-                2, 4, 3, 6, 0, 1, 
-                5, 2, 4, 7, 6, 0, 
-                4, 2, 7, 0, 6, 5};
+  m.elements = {0, 1, 2,
+                2, 3, 0,
+                5, 4, 6,
+                4, 7, 6};
   t.rotation = {0, 0, initial_angle};
   t.translation = {-1.80, 0.0f, -0.2};
   // get gl

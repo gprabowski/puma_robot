@@ -67,13 +67,10 @@ void set_model_uniform(transformation &t) {
                      glm::value_ptr(model));
 }
 
-void set_lighting(float diffuse, float specular, float ambient) {
+void set_lighting_uniforms(GLfloat ambient, GLfloat diffuse, GLfloat specular) {
   GLint program;
   glGetIntegerv(GL_CURRENT_PROGRAM, &program);
-
-  glUniform1f(glGetUniformLocation(program, "diffuse_intensity"), diffuse);
-  glUniform1f(glGetUniformLocation(program, "specular_intensity"), specular);
-  glUniform1f(glGetUniformLocation(program, "ambient_intensity"), ambient);
+  glUniform3f(glGetUniformLocation(program, "intensity"), ambient, diffuse, specular);
 }
 
 } // namespace utils
