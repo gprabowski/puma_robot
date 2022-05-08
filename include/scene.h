@@ -28,8 +28,7 @@ struct robot {
   std::array<glm::vec3, 5> positions;
 
   void load_parts_from_files(
-      const std::array<const std::filesystem::path, 6>
-          &filenames);
+      const std::array<const std::filesystem::path, 6> &filenames);
   void recalculate_transformations();
 };
 
@@ -37,7 +36,7 @@ struct environment {
   gl_object g;
   transformation t;
   mesh m;
-  bool visible{ true };
+  bool visible{true};
 
   void generate();
 };
@@ -75,6 +74,7 @@ private:
   void render_into_depth();
   void render_into_stencil();
   void render_shadowed();
+  void render_mirror();
   void render_ambient();
 };
 

@@ -10,8 +10,8 @@
 #include <string>
 #include <vector>
 
-#include <frame_update.h>
 #include <frame_state.h>
+#include <frame_update.h>
 
 std::vector<std::string> read_mesh_file(const std::filesystem::path mesh_file) {
   std::vector<std::string> ret;
@@ -177,8 +177,6 @@ void puma::scene::render_into_depth() {
     p.g.program = sm.programs[shader_t::NULL_SHADER].idx;
     utils::render_triangles(p, GL_TRIANGLES_ADJACENCY);
   }
-  m.g.program = sm.programs[shader_t::NULL_SHADER].idx;
-  utils::render_triangles(m, GL_TRIANGLES);
   e.g.program = sm.programs[shader_t::NULL_SHADER].idx;
   utils::render_triangles(e, GL_TRIANGLES);
 }
@@ -203,82 +201,109 @@ void puma::scene::render_into_stencil() {
     utils::render_triangles(p, GL_TRIANGLES_ADJACENCY);
   }
 
-  /*// mirror
+  // mirror
   glStencilFunc(GL_ALWAYS, 0xa0, 0xf0);
 
-  glStencilOpSeparate(GL_BACK, GL_KEEP, GL_REPLACE, GL_KEEP);
-  glStencilOpSeparate(GL_FRONT, GL_KEEP, GL_REPLACE, GL_KEEP);
+  glStencilOpSeparate(GL_BACK, GL_KEEP, GL_KEEP, GL_REPLACE);
+  glStencilOpSeparate(GL_FRONT, GL_KEEP, GL_KEEP, GL_REPLACE);
 
   m.g.program = sm.programs[shader_t::NULL_SHADER].idx;
-  utils::render_triangles(m, GL_TRIANGLES);*/
-  
+  utils::render_triangles(m, GL_TRIANGLES);
+
   glDepthMask(GL_TRUE);
   glDisable(GL_DEPTH_CLAMP);
   glEnable(GL_CULL_FACE);
 }
 
+void puma::scene::render_mirror() {
+  auto &sm = shader_manager::get_manager();
+  auto &is = input_state::get_input_state();
+
+  if (glm::dot(m.t.translation - is.cam_pos, m.current_normal) <= 0) {
+    glCullFace(GL_FRONT);
+    glStencilFunc(GL_EQUAL, 0xa0, 0xf0);
+    glDepthFunc(GL_ALWAYS);
+    glm::mat4 transform;
+    utils::get_model_uniform(m.t, transform);
+
+    auto mirror_mtx = transform *
+                      glm::scale(glm::mat4(1.0f), glm::vec3{-1, 1, 1}) *
+                      glm::inverse(transform);
+    auto old_lp = frame_state::light_pos;
+    frame_state::light_pos = mirror_mtx * glm::vec4(glm::vec3(old_lp), 1.0f);
+
+    update::refresh_view(frame_state::view * mirror_mtx);
+
+    e.g.program = sm.programs[shader_t::DEFAULT_SHADER].idx;
+    e.g.intensity = {0.2, 0.8, 0.8};
+    utils::render_triangles(e, GL_TRIANGLES);
+
+    glDepthFunc(GL_LEQUAL);
+    for (auto &p : r.parts) {
+      p.g.program = sm.programs[shader_t::DEFAULT_SHADER].idx;
+      p.g.intensity = {0.2, 0.8, 0.8};
+      utils::render_triangles(p, GL_TRIANGLES_ADJACENCY);
+    }
+
+    glEnable(GL_BLEND);
+    glBlendEquation(GL_FUNC_ADD);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    m.g.program = sm.programs[shader_t::DEFAULT_SHADER].idx;
+    m.g.intensity = {0.2, 0.8, 0.8};
+    auto oc = m.g.color;
+    m.g.color = {0.5f, 0.0f, 0.0f, 0.2f};
+    utils::render_triangles(m, GL_TRIANGLES);
+    m.g.color = oc;
+
+    frame_state::light_pos = old_lp;
+    glCullFace(GL_BACK);
+  } else {
+    m.g.program = sm.programs[shader_t::DEFAULT_SHADER].idx;
+    m.g.intensity = {0.2, 0.8, 0.8};
+    utils::render_triangles(m, GL_TRIANGLES);
+  }
+}
 void puma::scene::render_shadowed() {
   auto &sm = shader_manager::get_manager();
 
   glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
 
-  // draw only if the corresponding stencil value is zero
-  glStencilFunc(GL_EQUAL, 0x0, 0x0f);
-
   // prevent update to the stencil buffer
   glStencilOpSeparate(GL_BACK, GL_KEEP, GL_KEEP, GL_KEEP);
   glStencilOpSeparate(GL_FRONT, GL_KEEP, GL_KEEP, GL_KEEP);
+  // Setup mirror matrix
+  // draw only if the corresponding stencil value is zero
+  glStencilFunc(GL_EQUAL, 0x0, 0x0f);
 
   glDepthFunc(GL_LEQUAL);
 
   auto no_ambient = glm::vec3(0.0f, 0.8f, 0.8f);
-  
+
   for (auto &p : r.parts) {
     p.g.program = sm.programs[shader_t::DEFAULT_SHADER].idx;
     p.g.intensity = no_ambient;
     utils::render_triangles(p, GL_TRIANGLES_ADJACENCY);
   }
-  m.g.program = sm.programs[shader_t::DEFAULT_SHADER].idx;
-  m.g.intensity = no_ambient;
-  utils::render_triangles(m, GL_TRIANGLES);
   e.g.program = sm.programs[shader_t::DEFAULT_SHADER].idx;
   e.g.intensity = no_ambient;
   utils::render_triangles(e, GL_TRIANGLES);
-
-  //glStencilFunc(GL_EQUAL, 0xa0, 0xf0);
-
-  // Setup mirror matrix
-
-  /*glm::mat4 transform;
-  utils::get_model_uniform(m.t, transform);
-
-  auto mirror_mtx = transform * glm::scale(glm::mat4(1.0f), glm::vec3{-1, 1, 1}) * glm::inverse(transform);
-
-  update::refresh_view(frame_state::view * mirror_mtx);
-
-  for (auto &p : r.parts) {
-    p.g.program = sm.programs[shader_t::DEFAULT_SHADER].idx;
-    utils::render_triangles(p, GL_TRIANGLES_ADJACENCY);
-  }*/
 }
 
 void puma::scene::render_ambient() {
-  auto& sm = shader_manager::get_manager();
+  auto &sm = shader_manager::get_manager();
 
   glEnable(GL_BLEND);
   glBlendEquation(GL_FUNC_ADD);
   glBlendFunc(GL_ONE, GL_ONE);
+  glStencilFunc(GL_NOTEQUAL, 0xa0, 0xf0);
 
   auto ambient = glm::vec3(0.2f, 0.0f, 0.0f);
 
-  for (auto& p : r.parts) {
+  for (auto &p : r.parts) {
     p.g.program = sm.programs[shader_t::DEFAULT_SHADER].idx;
     p.g.intensity = ambient;
     utils::render_triangles(p, GL_TRIANGLES_ADJACENCY);
   }
-  m.g.program = sm.programs[shader_t::DEFAULT_SHADER].idx;
-  m.g.intensity = ambient;
-  utils::render_triangles(m, GL_TRIANGLES);
   e.g.intensity = ambient;
   e.g.program = sm.programs[shader_t::DEFAULT_SHADER].idx;
   utils::render_triangles(e, GL_TRIANGLES);
@@ -287,6 +312,8 @@ void puma::scene::render_ambient() {
 }
 
 void puma::scene::draw() {
+  update::setup_globals();
+  update::refresh_ubos();
   glDepthMask(GL_TRUE);
 
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
@@ -299,64 +326,63 @@ void puma::scene::draw() {
 
   render_shadowed();
 
-  glDisable(GL_STENCIL_TEST);
+  render_mirror();
+  update::refresh_ubos();
 
   render_ambient();
+
+  glDisable(GL_STENCIL_TEST);
 }
 
 void puma::environment::generate() {
-  static auto& sm = shader_manager::get_manager();
+  static auto &sm = shader_manager::get_manager();
   // generate vertices
   m.vertices = {
-    // east wall
-    {{5.0f, 0.0f, -5.0f}, {-1.0f, 0.0f, 0.0f}},
-    {{5.0f, 5.0f, -5.0f}, {-1.0f, 0.0f, 0.0f}},
-    {{5.0f, 5.0f, 5.0f}, {-1.0f, 0.0f, 0.0f}},
-    {{5.0f, 0.0f, 5.0f}, {-1.0f, 0.0f, 0.0f}},
+      // east wall
+      {{5.0f, 0.0f, -5.0f}, {-1.0f, 0.0f, 0.0f}},
+      {{5.0f, 5.0f, -5.0f}, {-1.0f, 0.0f, 0.0f}},
+      {{5.0f, 5.0f, 5.0f}, {-1.0f, 0.0f, 0.0f}},
+      {{5.0f, 0.0f, 5.0f}, {-1.0f, 0.0f, 0.0f}},
 
-    // west wall
-    {{-5.0f, 0.0f, -5.0f}, {1.0f, 0.0f, 0.0f}},
-    {{-5.0f, 5.0f, -5.0f}, {1.0f, 0.0f, 0.0f}},
-    {{-5.0f, 5.0f, 5.0f}, {1.0f, 0.0f, 0.0f}},
-    {{-5.0f, 0.0f, 5.0f}, {1.0f, 0.0f, 0.0f}},
+      // west wall
+      {{-5.0f, 0.0f, -5.0f}, {1.0f, 0.0f, 0.0f}},
+      {{-5.0f, 5.0f, -5.0f}, {1.0f, 0.0f, 0.0f}},
+      {{-5.0f, 5.0f, 5.0f}, {1.0f, 0.0f, 0.0f}},
+      {{-5.0f, 0.0f, 5.0f}, {1.0f, 0.0f, 0.0f}},
 
-    // north wall
-    {{-5.0f, 0.0f, 5.0f}, {0.0f, 0.0f, -1.0f}},
-    {{-5.0f, 5.0f, 5.0f}, {0.0f, 0.0f, -1.0f}},
-    {{5.0f, 5.0f, 5.0f}, {0.0f, 0.0f, -1.0f}},
-    {{5.0f, 0.0f, 5.0f}, {0.0f, 0.0f, -1.0f}},
+      // north wall
+      {{-5.0f, 0.0f, 5.0f}, {0.0f, 0.0f, -1.0f}},
+      {{-5.0f, 5.0f, 5.0f}, {0.0f, 0.0f, -1.0f}},
+      {{5.0f, 5.0f, 5.0f}, {0.0f, 0.0f, -1.0f}},
+      {{5.0f, 0.0f, 5.0f}, {0.0f, 0.0f, -1.0f}},
 
-    // south wall
-    {{-5.0f, 0.0f, -5.0f}, {0.0f, 0.0f, 1.0f}},
-    {{-5.0f, 5.0f, -5.0f}, {0.0f, 0.0f, 1.0f}},
-    {{5.0f, 5.0f, -5.0f}, {0.0f, 0.0f, 1.0f}},
-    {{5.0f, 0.0f, -5.0f}, {0.0f, 0.0f, 1.0f}},
+      // south wall
+      {{-5.0f, 0.0f, -5.0f}, {0.0f, 0.0f, 1.0f}},
+      {{-5.0f, 5.0f, -5.0f}, {0.0f, 0.0f, 1.0f}},
+      {{5.0f, 5.0f, -5.0f}, {0.0f, 0.0f, 1.0f}},
+      {{5.0f, 0.0f, -5.0f}, {0.0f, 0.0f, 1.0f}},
 
-    // floor
-    {{-5.0f, 0.0f, 5.0f}, {0.0f, 1.0f, 0.0f}},
-    {{-5.0f, 0.0f, -5.0f}, {0.0f, 1.0f, 0.0f}},
-    {{5.0f, 0.0f, -5.0f}, {0.0f, 1.0f, 0.0f}},
-    {{5.0f, 0.0f, 5.0f}, {0.0f, 1.0f, 0.0f}},
+      // floor
+      {{-5.0f, 0.0f, 5.0f}, {0.0f, 1.0f, 0.0f}},
+      {{-5.0f, 0.0f, -5.0f}, {0.0f, 1.0f, 0.0f}},
+      {{5.0f, 0.0f, -5.0f}, {0.0f, 1.0f, 0.0f}},
+      {{5.0f, 0.0f, 5.0f}, {0.0f, 1.0f, 0.0f}},
 
-    // ceiling
-    {{-5.0f, 5.0f, 5.0f}, {0.0f, -1.0f, 0.0f}},
-    {{-5.0f, 5.0f, -5.0f}, {0.0f, -1.0f, 0.0f}},
-    {{5.0f, 5.0f, -5.0f}, {0.0f, -1.0f, 0.0f}},
-    {{5.0f, 5.0f, 5.0f}, {0.0f, -1.0f, 0.0f}},
+      // ceiling
+      {{-5.0f, 5.0f, 5.0f}, {0.0f, -1.0f, 0.0f}},
+      {{-5.0f, 5.0f, -5.0f}, {0.0f, -1.0f, 0.0f}},
+      {{5.0f, 5.0f, -5.0f}, {0.0f, -1.0f, 0.0f}},
+      {{5.0f, 5.0f, 5.0f}, {0.0f, -1.0f, 0.0f}},
   };
 
   // generate indices
-  m.elements = { 
-    0, 2, 1, 2, 0, 3,
-    4, 5, 6, 6, 7, 4,
-    8, 9, 10, 10, 11, 8,
-    12, 14, 13, 15, 14, 12,
-    16, 18, 17, 18, 16, 19,
-    20, 21, 22, 22, 23, 20, 
+  m.elements = {
+      0,  2,  1,  2,  0,  3,  4,  5,  6,  6,  7,  4,  8,  9,  10, 10, 11, 8,
+      12, 14, 13, 15, 14, 12, 16, 18, 17, 18, 16, 19, 20, 21, 22, 22, 23, 20,
   };
 
-  t.rotation = { 0, 0, 0 };
-  t.translation = { 0.0f, -1.0f, 0.0f };
+  t.rotation = {0, 0, 0};
+  t.translation = {0.0f, -1.0f, 0.0f};
   g.program = sm.programs[shader_t::DEFAULT_SHADER].idx;
   g.reset_api_elements(m);
 }
@@ -379,10 +405,7 @@ void puma::mirror::generate() {
   constexpr float initial_angle = 0;
   // generate indices
   m.tris = {{0, 1, 2}, {2, 3, 0}, {5, 4, 6}, {4, 7, 6}};
-  m.elements = {0, 1, 2,
-                2, 3, 0,
-                5, 4, 6,
-                4, 7, 6};
+  m.elements = {0, 1, 2, 2, 3, 0, 5, 4, 6, 4, 7, 6};
   t.rotation = {0, 0, initial_angle};
   t.translation = {-1.80, 0.0f, -0.2};
   // get gl
