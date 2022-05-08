@@ -37,113 +37,6 @@ std::vector<std::string> read_mesh_file(const std::filesystem::path mesh_file) {
   return ret;
 }
 
-void puma::robot::load_parts_from_files(
-    const std::array<const std::filesystem::path, 6> &filenames) {
-  auto &sm = shader_manager::get_manager();
-  std::stringstream ss;
-  for (std::size_t i = 0u; i < parts.size(); ++i) {
-    auto &p = parts[i];
-    auto lines = read_mesh_file(filenames[i]);
-
-    std::size_t curr_idx{0u};
-
-    // read unique positions
-    std::size_t num_unique_positions{0u};
-    ss << lines[curr_idx++];
-    ss >> num_unique_positions;
-    ss.clear();
-    for (std::size_t up = 0u; up < num_unique_positions; ++up) {
-      float x, y, z;
-      ss << lines[curr_idx++];
-      ss >> x >> y >> z;
-      p.m.unique_positions.emplace_back(glm::vec3{x, y, z});
-      ss.clear();
-    }
-
-    // read normals
-    std::size_t num_vertices{0u};
-    ss << lines[curr_idx++];
-    ss >> num_vertices;
-    ss.clear();
-    for (std::size_t v = 0u; v < num_vertices; ++v) {
-      std::size_t idx;
-      float x, y, z;
-      ss << lines[curr_idx++];
-      ss >> idx >> x >> y >> z;
-      p.m.vertex_index.emplace_back(idx);
-      p.m.vertices.push_back(
-          vertex_t{p.m.unique_positions[idx], glm::vec3{x, y, z}});
-      ss.clear();
-    }
-
-    // read triangle indices
-    std::size_t num_triangles{0u};
-    ss << lines[curr_idx++];
-    ss >> num_triangles;
-    ss.clear();
-    for (std::size_t t = 0u; t < num_triangles; ++t) {
-      unsigned int a, b, c;
-      ss << lines[curr_idx++];
-      ss >> a >> b >> c;
-      p.m.tris.emplace_back(triangle_t{a, b, c});
-      ss.clear();
-    }
-
-    // read silhouette edges into a map
-    std::size_t num_edges;
-    ss << lines[curr_idx++];
-    ss >> num_edges;
-    ss.clear();
-    for (std::size_t e = 0u; e < num_edges; ++e) {
-      unsigned int v1, v2, t1, t2;
-      ss << lines[curr_idx++];
-      ss >> v1 >> v2 >> t1 >> t2;
-      auto edge = puma::edge_t(v1, v2);
-      p.m.edges[edge] = neighbors_t{t1, t2};
-      ss.clear();
-    }
-
-    // generate adjacenct tris indices for silhouette rendering
-    for (std::size_t t = 0u; t < num_triangles; t++) {
-      const puma::triangle_t &triangle = p.m.tris[t];
-
-      for (std::size_t v = 0u; v < 3; v++) {
-        auto v1 = p.m.vertex_index[triangle.indices[v]];
-        auto v2 = p.m.vertex_index[triangle.indices[(v + 1) % 3]];
-        puma::edge_t e(v1, v2);
-        assert(p.m.edges.find(e) != p.m.edges.end());
-        puma::neighbors_t n = p.m.edges[e];
-
-        const puma::triangle_t &other_triangle = p.m.tris[n.other(t)];
-
-        GLuint opposite = p.m.opposite_vertex(e, other_triangle);
-
-        p.m.elements.push_back(triangle.indices[v]);
-        p.m.elements.push_back(opposite);
-      }
-    }
-
-    axes = {glm::vec3{0.0f, 1.0f, 0.0f},
-            {0.0f, 0.0f, 1.0f},
-            {0.0f, 0.0f, 1.0f},
-            {1.0f, 0.0f, 0.0f},
-            {0.0f, 0.0f, 1.0f}};
-
-    positions = {glm::vec3{0.0f, 0.0f, 0.0f},
-                 {0.0f, 0.27f, 0.0f},
-                 {-0.91f, 0.27f, 0.0f},
-                 {0.0f, 0.27f, -0.26f},
-                 {-1.72f, 0.27f, 0.0f}};
-
-    for (std::size_t i = 0; i < angles.size(); ++i) {
-      angles[i] = 0.0f;
-      axes[i] = glm::normalize(axes[i]);
-    }
-    p.g.program = sm.programs[shader_t::DEFAULT_SHADER].idx;
-    p.g.reset_api_elements(p.m);
-  }
-}
-
 void decompose(const glm::mat4 &m, glm::vec3 &trans, glm::vec3 &scale,
                glm::vec3 &rot) {
   trans = glm::vec3(m[3]);
@@ -181,6 +74,8 @@ void puma::scene::render_into_depth() {
   utils::render_triangles(m, GL_TRIANGLES);
   e.g.program = sm.programs[shader_t::NULL_SHADER].idx;
   utils::render_triangles(e, GL_TRIANGLES);
+  c.g.program = sm.programs[shader_t::NULL_SHADER].idx;
+  utils::render_triangles(c, GL_TRIANGLES);
 }
 
 void puma::scene::render_into_stencil() {
@@ -202,15 +97,6 @@ void puma::scene::render_into_stencil() {
     p.g.program = sm.programs[shader_t::SHADOW_VOLUME_SHADER].idx;
     utils::render_triangles(p, GL_TRIANGLES_ADJACENCY);
   }
-
-  /*// mirror
-  glStencilFunc(GL_ALWAYS, 0xa0, 0xf0);
-
-  glStencilOpSeparate(GL_BACK, GL_KEEP, GL_REPLACE, GL_KEEP);
-  glStencilOpSeparate(GL_FRONT, GL_KEEP, GL_REPLACE, GL_KEEP);
-
-  m.g.program = sm.programs[shader_t::NULL_SHADER].idx;
-  utils::render_triangles(m, GL_TRIANGLES);*/
   
   glDepthMask(GL_TRUE);
   glDisable(GL_DEPTH_CLAMP);
@@ -231,7 +117,7 @@ void puma::scene::render_shadowed() {
 
   glDepthFunc(GL_LEQUAL);
 
-  auto no_ambient = glm::vec3(0.0f, 0.8f, 0.8f);
+  auto no_ambient = glm::vec3(0.0f, 0.6f, 0.6f);
   
   for (auto &p : r.parts) {
     p.g.program = sm.programs[shader_t::DEFAULT_SHADER].idx;
@@ -244,22 +130,9 @@ void puma::scene::render_shadowed() {
   e.g.program = sm.programs[shader_t::DEFAULT_SHADER].idx;
   e.g.intensity = no_ambient;
   utils::render_triangles(e, GL_TRIANGLES);
-
-  //glStencilFunc(GL_EQUAL, 0xa0, 0xf0);
-
-  // Setup mirror matrix
-
-  /*glm::mat4 transform;
-  utils::get_model_uniform(m.t, transform);
-
-  auto mirror_mtx = transform * glm::scale(glm::mat4(1.0f), glm::vec3{-1, 1, 1}) * glm::inverse(transform);
-
-  update::refresh_view(frame_state::view * mirror_mtx);
-
-  for (auto &p : r.parts) {
-    p.g.program = sm.programs[shader_t::DEFAULT_SHADER].idx;
-    utils::render_triangles(p, GL_TRIANGLES_ADJACENCY);
-  }*/
+  c.g.program = sm.programs[shader_t::DEFAULT_SHADER].idx;
+  c.g.intensity = no_ambient;
+  utils::render_triangles(c, GL_TRIANGLES);
 }
 
 void puma::scene::render_ambient() {
@@ -269,7 +142,7 @@ void puma::scene::render_ambient() {
   glBlendEquation(GL_FUNC_ADD);
   glBlendFunc(GL_ONE, GL_ONE);
 
-  auto ambient = glm::vec3(0.2f, 0.0f, 0.0f);
+  auto ambient = glm::vec3(0.4f, 0.0f, 0.0f);
 
   for (auto& p : r.parts) {
     p.g.program = sm.programs[shader_t::DEFAULT_SHADER].idx;
@@ -282,6 +155,9 @@ void puma::scene::render_ambient() {
   e.g.intensity = ambient;
   e.g.program = sm.programs[shader_t::DEFAULT_SHADER].idx;
   utils::render_triangles(e, GL_TRIANGLES);
+  c.g.program = sm.programs[shader_t::DEFAULT_SHADER].idx;
+  c.g.intensity = ambient;
+  utils::render_triangles(c, GL_TRIANGLES);
 
   glDisable(GL_BLEND);
 }
@@ -357,6 +233,7 @@ void puma::environment::generate() {
 
   t.rotation = { 0, 0, 0 };
   t.translation = { 0.0f, -1.0f, 0.0f };
+  g.color = glm::vec4(0.7f, 0.7f, 0.9f, 1.0f);
   g.program = sm.programs[shader_t::DEFAULT_SHADER].idx;
   g.reset_api_elements(m);
 }
@@ -386,11 +263,199 @@ void puma::mirror::generate() {
   t.rotation = {0, 0, initial_angle};
   t.translation = {-1.80, 0.0f, -0.2};
   // get gl
+  g.color = glm::vec4(0.7f, 0.9f, 0.8f, 1.0f);
   g.program = sm.programs[shader_t::DEFAULT_SHADER].idx;
   current_normal = glm::rotate(glm::mat4(1.0f), glm::radians(initial_angle),
                                {0.0f, 0.0f, 1.0f}) *
                    glm::vec4(1.0f, 0.0f, 0.0f, 0.0f);
   g.reset_api_elements(m);
+}
+
+void puma::cylinder::generate() {
+  static auto& sm = shader_manager::get_manager();
+
+  float h = 3.0f;
+  float r = 0.5f;
+
+  int n = 30;
+  int offset = 0;
+
+  auto alpha = 0.0f;
+  auto delta = 2 * glm::radians(180.0f) / n;
+
+  // generate top face
+
+  m.vertices.emplace_back(vertex_t{ { 0, 0, h / 2 }, { 0, 0, 1 } });
+  offset++;
+
+  for (int i = 0; i < n; i++) {
+    vertex_t v = { {r * glm::cos(alpha), r * glm::sin(alpha), h / 2}, {0, 0, 1} };
+    alpha += delta;
+    m.vertices.emplace_back(v);
+  }
+
+  for (int i = 0; i < n; i++) {
+    m.elements.emplace_back(0);
+    m.elements.emplace_back(i + offset);
+    m.elements.emplace_back(((i + 1) % n) + offset);
+  }
+
+  offset += n;
+
+  // generate bottom face
+
+  alpha = 0.0f;
+
+  m.vertices.emplace_back(vertex_t{ { 0, 0, -h / 2 }, { 0, 0, -1 } });
+  offset++;
+
+  for (int i = 0; i < n; i++) {
+    vertex_t v = { {r * glm::cos(alpha), r * glm::sin(alpha), -h / 2}, {0, 0, -1} };
+    alpha += delta;
+    m.vertices.emplace_back(v);
+  }
+
+  for (int i = 0; i < n; i++) {
+    m.elements.emplace_back(i + offset);
+    m.elements.emplace_back(n + 1);
+    m.elements.emplace_back(((i + 1) % n) + offset);
+  }
+
+  offset += n;
+
+  // generate side quads
+
+  alpha = 0.0f;
+  for (int i = 0; i < n; i++) {
+    vertex_t v1 = { {r * glm::cos(alpha), r * glm::sin(alpha), h / 2}, {r * glm::cos(alpha), r * glm::sin(alpha), 0} };
+    vertex_t v2 = { {r * glm::cos(alpha), r * glm::sin(alpha), -h / 2}, {r * glm::cos(alpha), r * glm::sin(alpha), 0} };
+    alpha += delta;
+    m.vertices.emplace_back(v1);
+    m.vertices.emplace_back(v2);
+  }
+
+  for (int i = 0; i < n; i++) {
+    m.elements.emplace_back(2 * i + offset);
+    m.elements.emplace_back((2 * i + 1) % (2 * n) + offset);
+    m.elements.emplace_back((2 * i + 2) % (2 * n) + offset);
+
+    m.elements.emplace_back((2 * i + 3) % (2 * n) + offset);
+    m.elements.emplace_back((2 * i + 2) % (2 * n) + offset);
+    m.elements.emplace_back((2 * i + 1) % (2 * n) + offset);
+  }
+
+  t.rotation = { 0, 90.0f, 0 };
+  t.translation = { 0.0f, -1.0f, -2.0f };
+  g.color = glm::vec4(0.3f, 0.7f, 0.9f, 1.0f);
+  g.program = sm.programs[shader_t::DEFAULT_SHADER].idx;
+  g.reset_api_elements(m);
+}
+
+void puma::robot::load_parts_from_files(
+  const std::array<const std::filesystem::path, 6>& filenames) {
+  auto& sm = shader_manager::get_manager();
+  std::stringstream ss;
+  for (std::size_t i = 0u; i < parts.size(); ++i) {
+    auto& p = parts[i];
+    auto lines = read_mesh_file(filenames[i]);
+
+    std::size_t curr_idx{ 0u };
+
+    // read unique positions
+    std::size_t num_unique_positions{ 0u };
+    ss << lines[curr_idx++];
+    ss >> num_unique_positions;
+    ss.clear();
+    for (std::size_t up = 0u; up < num_unique_positions; ++up) {
+      float x, y, z;
+      ss << lines[curr_idx++];
+      ss >> x >> y >> z;
+      p.m.unique_positions.emplace_back(glm::vec3{ x, y, z });
+      ss.clear();
+    }
+
+    // read normals
+    std::size_t num_vertices{ 0u };
+    ss << lines[curr_idx++];
+    ss >> num_vertices;
+    ss.clear();
+    for (std::size_t v = 0u; v < num_vertices; ++v) {
+      std::size_t idx;
+      float x, y, z;
+      ss << lines[curr_idx++];
+      ss >> idx >> x >> y >> z;
+      p.m.vertex_index.emplace_back(idx);
+      p.m.vertices.push_back(
+        vertex_t{ p.m.unique_positions[idx], glm::vec3{x, y, z} });
+      ss.clear();
+    }
+
+    // read triangle indices
+    std::size_t num_triangles{ 0u };
+    ss << lines[curr_idx++];
+    ss >> num_triangles;
+    ss.clear();
+    for (std::size_t t = 0u; t < num_triangles; ++t) {
+      unsigned int a, b, c;
+      ss << lines[curr_idx++];
+      ss >> a >> b >> c;
+      p.m.tris.emplace_back(triangle_t{ a, b, c });
+      ss.clear();
+    }
+
+    // read silhouette edges into a map
+    std::size_t num_edges;
+    ss << lines[curr_idx++];
+    ss >> num_edges;
+    ss.clear();
+    for (std::size_t e = 0u; e < num_edges; ++e) {
+      unsigned int v1, v2, t1, t2;
+      ss << lines[curr_idx++];
+      ss >> v1 >> v2 >> t1 >> t2;
+      auto edge = puma::edge_t(v1, v2);
+      p.m.edges[edge] = neighbors_t{ t1, t2 };
+      ss.clear();
+    }
+
+    // generate adjacenct tris indices for silhouette rendering
+    for (std::size_t t = 0u; t < num_triangles; t++) {
+      const puma::triangle_t& triangle = p.m.tris[t];
+
+      for (std::size_t v = 0u; v < 3; v++) {
+        auto v1 = p.m.vertex_index[triangle.indices[v]];
+        auto v2 = p.m.vertex_index[triangle.indices[(v + 1) % 3]];
+        puma::edge_t e(v1, v2);
+        assert(p.m.edges.find(e) != p.m.edges.end());
+        puma::neighbors_t n = p.m.edges[e];
+
+        const puma::triangle_t& other_triangle = p.m.tris[n.other(t)];
+
+        GLuint opposite = p.m.opposite_vertex(e, other_triangle);
+
+        p.m.elements.push_back(triangle.indices[v]);
+        p.m.elements.push_back(opposite);
+      }
+    }
+
+    axes = { glm::vec3{0.0f, 1.0f, 0.0f},
+            {0.0f, 0.0f, 1.0f},
+            {0.0f, 0.0f, 1.0f},
+            {1.0f, 0.0f, 0.0f},
+            {0.0f, 0.0f, 1.0f} };
+
+    positions = { glm::vec3{0.0f, 0.0f, 0.0f},
+                 {0.0f, 0.27f, 0.0f},
+                 {-0.91f, 0.27f, 0.0f},
+                 {0.0f, 0.27f, -0.26f},
+                 {-1.72f, 0.27f, 0.0f} };
+
+    for (std::size_t i = 0; i < angles.size(); ++i) {
+      angles[i] = 0.0f;
+      axes[i] = glm::normalize(axes[i]);
+    }
+    p.g.program = sm.programs[shader_t::DEFAULT_SHADER].idx;
+    p.g.reset_api_elements(p.m);
+  }
 }
 
 void puma::mirror::move(double delta) {

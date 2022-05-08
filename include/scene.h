@@ -42,6 +42,15 @@ struct environment {
   void generate();
 };
 
+struct cylinder {
+  gl_object g;
+  transformation t;
+  mesh m;
+  bool visible{ true };
+
+  void generate();
+};
+
 struct mirror {
   gl_object g;
   transformation t;
@@ -59,6 +68,7 @@ struct scene {
   robot r;
   environment e;
   mirror m;
+  cylinder c;
   bool animation{true};
   void draw();
 
@@ -68,6 +78,7 @@ struct scene {
                              "assets/mesh5.txt", "assets/mesh6.txt"});
     m.generate();
     e.generate();
+    c.generate();
   }
 
   // various render passes
