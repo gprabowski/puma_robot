@@ -164,12 +164,15 @@ void puma::scene::render_ambient() {
 
   glDisable(GL_BLEND);
 
-  glEnable(GL_BLEND);
-  glBlendEquation(GL_FUNC_ADD);
-  glBlendFunc(GL_SRC_ALPHA, GL_ONE);
-  ps.g.program = sm.programs[shader_t::PARTICLE_SHADER].idx;
-  utils::render_primitives(ps, GL_LINES);
-  glDisable(GL_BLEND);
+  if (animation) {
+    glEnable(GL_BLEND);
+    glBlendEquation(GL_FUNC_ADD);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE);
+    ps.g.program = sm.programs[shader_t::PARTICLE_SHADER].idx;
+    glBindTexture(GL_TEXTURE_2D, ps.texture);
+    utils::render_primitives(ps, GL_LINES);
+    glDisable(GL_BLEND);
+  }
 }
 
 void puma::scene::draw() {

@@ -20,6 +20,7 @@ namespace puma {
   struct particle_system {
     unsigned int n_particles;
     unsigned int last_used = 0;
+    unsigned int texture;
     float dt = 0.01f;
     std::vector<particle> particles;
     glm::vec3 emitter_pos;

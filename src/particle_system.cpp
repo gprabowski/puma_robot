@@ -2,6 +2,8 @@
 #include <shader_manager.h>
 
 #include <mesh.h>
+#define STB_IMAGE_IMPLEMENTATION
+#include "stb/stb_image.h";
 
 unsigned int puma::particle_system::first_unused() {
   for (unsigned int i = last_used; i < n_particles; ++i) {
@@ -69,6 +71,24 @@ void puma::particle_system::update() {
 
 void puma::particle_system::init()
 {
+  // generate particle texture
+  glGenTextures(1, &texture);
+  glBindTexture(GL_TEXTURE_2D, texture);
+  // set the texture wrapping/filtering options (on the currently bound texture object)
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+  // load and generate the texture
+  int width, height, nrChannels;
+  unsigned char* data = stbi_load("assets/spark.png", &width, &height, &nrChannels, 0);
+  if (data)
+  {
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+    glGenerateMipmap(GL_TEXTURE_2D);
+  }
+  stbi_image_free(data);
+
   emitter_pos = glm::vec3(2, 0, 0);
   emitter_dir = glm::vec3(1, 0, 0);
   // create 100 particles
