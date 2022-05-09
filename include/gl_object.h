@@ -16,6 +16,7 @@ struct gl_object {
   GLuint vao, vbo, ebo;
 
   glm::vec4 color{1.0f, 1.0f, 1.0f, 1.0f};
+  glm::vec3 intensity{0.0f, 1.0f, 1.0f};
 
   void reset_api_elements(puma::mesh &m);
 

@@ -28,12 +28,27 @@ struct robot {
   std::array<glm::vec3, 5> positions;
 
   void load_parts_from_files(
-      const std::array<const std::filesystem::path, 6>
-          &filenames);
+      const std::array<const std::filesystem::path, 6> &filenames);
   void recalculate_transformations();
 };
 
-struct environment {};
+struct environment {
+  gl_object g;
+  transformation t;
+  mesh m;
+  bool visible{true};
+
+  void generate();
+};
+
+struct cylinder {
+  gl_object g;
+  transformation t;
+  mesh m;
+  bool visible{ true };
+
+  void generate();
+};
 
 struct mirror {
   gl_object g;
@@ -52,6 +67,7 @@ struct scene {
   robot r;
   environment e;
   mirror m;
+  cylinder c;
   bool animation{true};
   void draw();
 
@@ -60,6 +76,8 @@ struct scene {
                              "assets/mesh3.txt", "assets/mesh4.txt",
                              "assets/mesh5.txt", "assets/mesh6.txt"});
     m.generate();
+    e.generate();
+    c.generate();
   }
 
   // various render passes
@@ -67,6 +85,7 @@ private:
   void render_into_depth();
   void render_into_stencil();
   void render_shadowed();
+  void render_mirror();
   void render_ambient();
 };
 

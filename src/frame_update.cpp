@@ -14,7 +14,7 @@
 #include <mtxlib.h>
 
 namespace update {
-void setup_globals(const ImVec2 &s) {
+void setup_globals() {
   auto &state = input_state::get_input_state();
 
   int width, height;
@@ -53,6 +53,25 @@ void refresh_ubos() {
          sizeof(float) * 16);
   memcpy(&common_ubo_ptr[16], glm::value_ptr(frame_state::view),
          sizeof(float) * 16);
+  memcpy(&common_ubo_ptr[32], glm::value_ptr(frame_state::light_pos),
+         sizeof(float) * 4);
+  memcpy(&common_ubo_ptr[36], glm::value_ptr(frame_state::light_color),
+         sizeof(float) * 4);
+  memcpy(&common_ubo_ptr[40], glm::value_ptr(is.cam_pos), sizeof(float) * 4);
+  glUnmapNamedBuffer(sm.common_ubo);
+  glBindBuffer(GL_UNIFORM_BUFFER, sm.common_ubo);
+}
+
+void refresh_view(const glm::mat4 &view) {
+  static auto &sm = shader_manager::get_manager();
+  static auto &is = input_state::get_input_state();
+  glBindBufferBase(GL_UNIFORM_BUFFER, sm.common_ubo_block_loc, sm.common_ubo);
+  float *common_ubo_ptr = (float *)glMapNamedBufferRange(
+      sm.common_ubo, 0, sizeof(float) * (2 * 16 + 3 * 4),
+      GL_MAP_WRITE_BIT | GL_MAP_INVALIDATE_BUFFER_BIT);
+  memcpy(&common_ubo_ptr[0], glm::value_ptr(frame_state::proj),
+         sizeof(float) * 16);
+  memcpy(&common_ubo_ptr[16], glm::value_ptr(view), sizeof(float) * 16);
   memcpy(&common_ubo_ptr[32], glm::value_ptr(frame_state::light_pos),
          sizeof(float) * 4);
   memcpy(&common_ubo_ptr[36], glm::value_ptr(frame_state::light_color),
