@@ -26,7 +26,7 @@ void puma::particle_system::respawn(particle &p) {
   float vx = ((rand() % 100) - 50) / 30.0f;
   float vy = ((rand() % 100) - 50) / 30.0f;
   float vz = ((rand() % 100) - 50) / 30.0f;
-  float life = 0.5f + ((rand() % 50) / 100.0f);
+  float life = 0.1f + ((rand() % 50) / 100.0f);
   p.pos = emitter_pos;
   p.life = life;
   p.vel = (-emitter_dir + glm::vec3(vx, vy, vz)) * 0.6f;
@@ -56,12 +56,13 @@ void puma::particle_system::update() {
     if (particles[i].life <= 0.0f)
     {
       respawn(particles[i]);
+      m.vertices[2 * i].pos = particles[i].pos;
+      m.vertices[2 * i + 1].pos = particles[i].pos;
       emitted++;
       if (emitted > 3)
         break;
     }
   }
-
   
   g.reset_api_elements(m);
 }
