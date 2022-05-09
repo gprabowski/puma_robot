@@ -133,6 +133,9 @@ void puma::scene::render_shadowed() {
   c.g.program = sm.programs[shader_t::DEFAULT_SHADER].idx;
   c.g.intensity = no_ambient;
   utils::render_primitives(c, GL_TRIANGLES);
+
+  ps.emitter_pos = m.current_point;
+  ps.emitter_dir = m.current_normal;
 }
 
 void puma::scene::render_ambient() {
@@ -159,14 +162,13 @@ void puma::scene::render_ambient() {
   c.g.intensity = ambient;
   utils::render_primitives(c, GL_TRIANGLES);
 
-  ps.emitter_pos = m.current_point;
-  ps.emitter_dir = m.current_normal;
-  glPointSize(5);
+  glDisable(GL_BLEND);
+
+  glEnable(GL_BLEND);
+  glBlendEquation(GL_FUNC_ADD);
+  glBlendFunc(GL_SRC_ALPHA, GL_ONE);
   ps.g.program = sm.programs[shader_t::PARTICLE_SHADER].idx;
-  utils::render_primitives(ps, GL_POINTS);
-
-  
-
+  utils::render_primitives(ps, GL_LINES);
   glDisable(GL_BLEND);
 }
 

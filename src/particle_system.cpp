@@ -35,19 +35,7 @@ void puma::particle_system::respawn(particle &p) {
 void puma::particle_system::update() {
   int emitted = 0;
 
-  for (unsigned int i = 0; i < this->particles.size(); ++i)
-  {
-    // if the lifetime is below 0 respawn the particle
-    if (particles[i].life <= 0.0f)
-    {
-      respawn(particles[i]);
-      emitted++;
-      if (emitted > 1)
-        break;
-    }
-  }
-
-  for (unsigned int i = 0; i < this->particles.size(); ++i)
+  for (unsigned int i = 0; i < particles.size(); ++i)
   {
     // subtract from the particles lifetime
     particles[i].life -= dt;
@@ -55,10 +43,26 @@ void puma::particle_system::update() {
     particles[i].pos -= particles[i].vel * dt;
     particles[i].vel.y += 9.81 * dt;
 
-    m.vertices[i].pos = particles[i].pos;
-    // hacky but allows us to use the same layout
-    m.vertices[i].norm = particles[i].vel;
+    m.vertices[2 * i].pos = m.vertices[2 * i + 1].pos;
+    m.vertices[2 * i + 1].pos = particles[i].pos;
+    // ugly and hacky but allows us to use the same layout
+    m.vertices[2 * i].norm = glm::vec3(particles[i].life, 0, 0);
+    m.vertices[2 * i + 1].norm = glm::vec3(particles[i].life, 0, 0);
   }
+
+  for (unsigned int i = 0; i < this->particles.size(); ++i)
+  {
+    // if the lifetime is below 0 respawn the particle
+    if (particles[i].life <= 0.0f)
+    {
+      respawn(particles[i]);
+      emitted++;
+      if (emitted > 3)
+        break;
+    }
+  }
+
+  
   g.reset_api_elements(m);
 }
 
@@ -67,12 +71,14 @@ void puma::particle_system::init()
   emitter_pos = glm::vec3(2, 0, 0);
   emitter_dir = glm::vec3(1, 0, 0);
   // create 100 particles
-  particles.resize(200);
+  particles.resize(100);
   for (unsigned int i = 0; i < particles.size(); ++i)
   {
-    // add corresponding mesh vertex
+    // add corresponding mesh vertices (last and current position)
     m.vertices.emplace_back(vertex_t());
-    m.elements.emplace_back(i);
+    m.vertices.emplace_back(vertex_t());
+    m.elements.emplace_back(2*i);
+    m.elements.emplace_back(2*i + 1);
   }
   t.translation = glm::vec3(0, 0, 0);
   t.rotation = glm::vec3(0, 0, 0);

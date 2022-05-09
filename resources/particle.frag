@@ -1,20 +1,12 @@
 #version 460
 
-in vec4 color;
-in vec3 normal;
-in vec3 frag_pos;
-out vec4 frag_color;
+in vec2 uv;
+in float alpha;
 
-layout (std140) uniform common_block {
-    mat4 proj;
-    mat4 view;
-    vec4 light_pos;
-    vec4 light_color;
-    vec4 cam_pos;
-};
+out vec4 frag_color;
 
 uniform vec3 intensity;
 
 void main() {
-    frag_color = vec4(1, 1, 1, 1);
+    frag_color = vec4(1, 1, 1, alpha);
 }
