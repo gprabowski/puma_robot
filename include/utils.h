@@ -39,4 +39,9 @@ template <typename O> void render_triangles(O &o, GLenum primitives) {
   glDrawElements(primitives, m.elements.size(), GL_UNSIGNED_INT, NULL);
 }
 
+template <typename O> void render_particles(O& o) {
+  glBindVertexArray(g.vao);
+  glUseProgram(g.program);
+  glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+  glDrawElements(primitives, m.elements.size(), GL_UNSIGNED_INT, NULL);
 } // namespace utils

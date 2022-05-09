@@ -165,6 +165,7 @@ std::shared_ptr<GLFWwindow> init_all(const char *caption) {
   sm.add(shader_t::SILHOUETTE_SHADER, "resources/silhouette");
   sm.add(shader_t::NULL_SHADER, "resources/null");
   sm.add(shader_t::SHADOW_VOLUME_SHADER, "resources/shadow");
+  sm.add(shader_t::PARTICLE_SHADER, "resources/particle");
 
   gui::setup_gui(w);
 

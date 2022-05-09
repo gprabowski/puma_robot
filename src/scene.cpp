@@ -163,11 +163,13 @@ void puma::scene::render_ambient() {
 }
 
 void puma::scene::draw() {
+  ps.update();
+
   glDepthMask(GL_TRUE);
 
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
-  render_into_depth();
+  /*render_into_depth();
 
   glEnable(GL_STENCIL_TEST);
 
@@ -177,7 +179,9 @@ void puma::scene::draw() {
 
   glDisable(GL_STENCIL_TEST);
 
-  render_ambient();
+  render_ambient();*/
+
+  ps.render();
 }
 
 void puma::environment::generate() {

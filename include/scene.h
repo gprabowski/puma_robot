@@ -9,6 +9,7 @@
 
 #include <gl_object.h>
 #include <transformation.h>
+#include <particle_system.h>
 
 namespace puma {
 
@@ -69,6 +70,7 @@ struct scene {
   environment e;
   mirror m;
   cylinder c;
+  particle_system ps;
   bool animation{true};
   void draw();
 
@@ -79,6 +81,8 @@ struct scene {
     m.generate();
     e.generate();
     c.generate();
+
+    ps.init();
   }
 
   // various render passes

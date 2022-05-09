@@ -13,6 +13,7 @@ set(SOURCES
     shader_manager.cpp
     scene.cpp
     gl_object.cpp
+    "particle_system.cpp"
 )
 
 add_executable(puma)
