@@ -14,6 +14,6 @@
 [submodule "thirdparty/implot"]
 	path = thirdparty/implot
 	url = https://github.com/epezent/implot
-[submodule "thirdparty/lodepng"]
-	path = thirdparty/lodepng
-	url = https://github.com/lvandeve/lodepng
+[submodule "thirdparty/stb"]
+	path = thirdparty/stb
+	url = https://github.com/nothings/stb
