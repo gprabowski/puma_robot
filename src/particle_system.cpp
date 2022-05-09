@@ -25,13 +25,13 @@ unsigned int puma::particle_system::first_unused() {
 }
 
 void puma::particle_system::respawn(particle &p) {
-  float vx = ((rand() % 100) - 50) / 30.0f;
-  float vy = ((rand() % 100) - 50) / 30.0f;
-  float vz = ((rand() % 100) - 50) / 30.0f;
+  float vx = ((rand() % 100) - 50) / 10.0f;
+  float vy = ((rand() % 100) - 50) / 10.0f;
+  float vz = ((rand() % 100) - 50) / 10.0f;
   float life = 0.1f + ((rand() % 50) / 100.0f);
   p.pos = emitter_pos;
   p.life = life;
-  p.vel = (-emitter_dir + glm::vec3(vx, vy, vz)) * 0.6f;
+  p.vel = (-emitter_dir + glm::vec3(vx, vy, vz)) * 0.7f;
 }
 
 void puma::particle_system::update() {
@@ -61,7 +61,7 @@ void puma::particle_system::update() {
       m.vertices[2 * i].pos = particles[i].pos;
       m.vertices[2 * i + 1].pos = particles[i].pos;
       emitted++;
-      if (emitted > 3)
+      if (emitted > 20)
         break;
     }
   }
@@ -92,7 +92,7 @@ void puma::particle_system::init()
   emitter_pos = glm::vec3(2, 0, 0);
   emitter_dir = glm::vec3(1, 0, 0);
   // create 100 particles
-  particles.resize(100);
+  particles.resize(400);
   for (unsigned int i = 0; i < particles.size(); ++i)
   {
     // add corresponding mesh vertices (last and current position)

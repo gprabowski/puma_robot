@@ -51,7 +51,7 @@ void render_viewport(puma::scene &s) {
   static auto &fb = framebuffer::get();
   static auto &desc = fb.get_desc();
   ImGui::Begin("Viewport");
-  update::setup_globals(ImGui::GetContentRegionAvail());
+  update::setup_globals();
   const auto region = ImGui::GetContentRegionAvail();
 
   if (desc.width != region.x || desc.height != region.y) {

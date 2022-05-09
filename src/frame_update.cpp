@@ -14,7 +14,7 @@
 #include <mtxlib.h>
 
 namespace update {
-void setup_globals(const ImVec2 &s) {
+void setup_globals() {
   auto &state = input_state::get_input_state();
 
   int width, height;
@@ -62,7 +62,7 @@ void refresh_ubos() {
   glBindBuffer(GL_UNIFORM_BUFFER, sm.common_ubo);
 }
 
-void refresh_view(glm::mat4 &view) {
+void refresh_view(const glm::mat4 &view) {
   static auto &sm = shader_manager::get_manager();
   static auto &is = input_state::get_input_state();
   glBindBufferBase(GL_UNIFORM_BUFFER, sm.common_ubo_block_loc, sm.common_ubo);

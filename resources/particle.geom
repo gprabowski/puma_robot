@@ -24,11 +24,13 @@ void main (void)
 
   vec3 right = -normalize((p2 - p1));
 
-  vec3 cam_dir = normalize(p1 - cam_pos.xyz);
+  vec4 cam = inverse(view) * vec4(0, 0, 0, 1);
+
+  vec3 cam_dir = normalize(p1 - cam.xyz);
 
   vec3 up = normalize(cross(cam_dir, right));
   
-  vec3 va = p1 - (right + up) * 0.05f;
+  vec3 va = p1 - (right + up) * 0.03f;
   gl_Position = proj * view * vec4(va, 1.0);
   uv = vec2(0.0, 0.0);
   alpha = life[0];
