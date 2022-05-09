@@ -68,14 +68,14 @@ void puma::scene::render_into_depth() {
 
   for (auto &p : r.parts) {
     p.g.program = sm.programs[shader_t::NULL_SHADER].idx;
-    utils::render_triangles(p, GL_TRIANGLES_ADJACENCY);
+    utils::render_primitives(p, GL_TRIANGLES_ADJACENCY);
   }
   m.g.program = sm.programs[shader_t::NULL_SHADER].idx;
-  utils::render_triangles(m, GL_TRIANGLES);
+  utils::render_primitives(m, GL_TRIANGLES);
   e.g.program = sm.programs[shader_t::NULL_SHADER].idx;
-  utils::render_triangles(e, GL_TRIANGLES);
+  utils::render_primitives(e, GL_TRIANGLES);
   c.g.program = sm.programs[shader_t::NULL_SHADER].idx;
-  utils::render_triangles(c, GL_TRIANGLES);
+  utils::render_primitives(c, GL_TRIANGLES);
 }
 
 void puma::scene::render_into_stencil() {
@@ -95,7 +95,7 @@ void puma::scene::render_into_stencil() {
 
   for (auto &p : r.parts) {
     p.g.program = sm.programs[shader_t::SHADOW_VOLUME_SHADER].idx;
-    utils::render_triangles(p, GL_TRIANGLES_ADJACENCY);
+    utils::render_primitives(p, GL_TRIANGLES_ADJACENCY);
   }
   
   glDepthMask(GL_TRUE);
@@ -122,17 +122,17 @@ void puma::scene::render_shadowed() {
   for (auto &p : r.parts) {
     p.g.program = sm.programs[shader_t::DEFAULT_SHADER].idx;
     p.g.intensity = no_ambient;
-    utils::render_triangles(p, GL_TRIANGLES_ADJACENCY);
+    utils::render_primitives(p, GL_TRIANGLES_ADJACENCY);
   }
   m.g.program = sm.programs[shader_t::DEFAULT_SHADER].idx;
   m.g.intensity = no_ambient;
-  utils::render_triangles(m, GL_TRIANGLES);
+  utils::render_primitives(m, GL_TRIANGLES);
   e.g.program = sm.programs[shader_t::DEFAULT_SHADER].idx;
   e.g.intensity = no_ambient;
-  utils::render_triangles(e, GL_TRIANGLES);
+  utils::render_primitives(e, GL_TRIANGLES);
   c.g.program = sm.programs[shader_t::DEFAULT_SHADER].idx;
   c.g.intensity = no_ambient;
-  utils::render_triangles(c, GL_TRIANGLES);
+  utils::render_primitives(c, GL_TRIANGLES);
 }
 
 void puma::scene::render_ambient() {
@@ -147,17 +147,25 @@ void puma::scene::render_ambient() {
   for (auto& p : r.parts) {
     p.g.program = sm.programs[shader_t::DEFAULT_SHADER].idx;
     p.g.intensity = ambient;
-    utils::render_triangles(p, GL_TRIANGLES_ADJACENCY);
+    utils::render_primitives(p, GL_TRIANGLES_ADJACENCY);
   }
   m.g.program = sm.programs[shader_t::DEFAULT_SHADER].idx;
   m.g.intensity = ambient;
-  utils::render_triangles(m, GL_TRIANGLES);
+  utils::render_primitives(m, GL_TRIANGLES);
   e.g.intensity = ambient;
   e.g.program = sm.programs[shader_t::DEFAULT_SHADER].idx;
-  utils::render_triangles(e, GL_TRIANGLES);
+  utils::render_primitives(e, GL_TRIANGLES);
   c.g.program = sm.programs[shader_t::DEFAULT_SHADER].idx;
   c.g.intensity = ambient;
-  utils::render_triangles(c, GL_TRIANGLES);
+  utils::render_primitives(c, GL_TRIANGLES);
+
+  ps.emitter_pos = m.current_point;
+  ps.emitter_dir = m.current_normal;
+  glPointSize(5);
+  ps.g.program = sm.programs[shader_t::PARTICLE_SHADER].idx;
+  utils::render_primitives(ps, GL_POINTS);
+
+  
 
   glDisable(GL_BLEND);
 }
@@ -169,7 +177,7 @@ void puma::scene::draw() {
 
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
-  /*render_into_depth();
+  render_into_depth();
 
   glEnable(GL_STENCIL_TEST);
 
@@ -179,9 +187,7 @@ void puma::scene::draw() {
 
   glDisable(GL_STENCIL_TEST);
 
-  render_ambient();*/
-
-  ps.render();
+  render_ambient();
 }
 
 void puma::environment::generate() {

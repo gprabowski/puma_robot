@@ -5,17 +5,16 @@
 #include <glm/glm.hpp>
 #include <glm/gtx/quaternion.hpp>
 
+#include <transformation.h>
 #include <gl_object.h>
+#include <mesh.h>
 
 namespace puma {
   struct particle {
     glm::vec3 pos, vel;
-    glm::vec4 color;
     float     life;
 
-    particle() : pos(0.0f), vel(0.0f), color(1.0f), life(0.0f) {
-      
-    }
+    particle() : pos(0.0f), vel(0.0f), life(0.0f) {}
   };
 
   struct particle_system {
@@ -28,11 +27,11 @@ namespace puma {
     gl_object g;
     transformation t;
     mesh m;
+    bool visible{ true };
 
     void init();
     unsigned int first_unused();
     void respawn(particle &p);
     void update();
-    void render();
   };
 }
